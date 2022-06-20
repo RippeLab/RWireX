@@ -1,0 +1,33 @@
+Package: RWireX
+Title: Co-accessibility analysis of scATAC-seq data to identify stochastically occuring co-accessible links
+Version: 0.1.00
+Authors@R: 
+    person(given = "Isabelle",
+           family = "Lander",
+           role = c("aut", "cre"),
+           email = "i.lander@dkfz-heidelberg.de",
+           comment = c(ORCID = "YOUR-ORCID-ID"))
+Description: RWireX is based on our previously developed RWire package and implemented as an extension to the ArchR software package. It performs co-accessibility analysis of scATAC-seq data acquired by droplet-based single cell sequencing. RWireX employs a local background model, computes single-cell link activity scores, and provides co-accessibility maps of large genomic regions to identify interacting loci without pre-selecting specific viewpoints. 
+Depends:
+    R (>= 3.5),
+    ArchR (>= 1.0.1)
+Imports:
+    parallel,
+    ggExtra
+License: `use_mit_license()`, `use_gpl3_license()` or friends to
+    pick a license
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.2
+Collate: 
+    'addCoAccessibility.R'
+    'getBackgroundCoAccessibility.R'
+    'plotBrowserTrack.R'
+    'getCellAggregates.R'
+    'plotCellQuality.R'
+    'plotCoAccessibilityMap.R'
+    'plotUmapClusters.R'
+    'plotUmapSplit.R'
+    'plotUmapQC.R'
+    'plotUmaps.R'
