@@ -3,3 +3,5 @@
 .RData
 .Ruserdata
 ArchRLogs
+.ipynb_checkpoints
+R/.ipynb_checkpoints

@@ -37,6 +37,8 @@
 #' @export
 
 #library(parallel)
+#ToDo: change to package call
+source("./R/coAccessibilityHelper.R")
 
 addCoAccessibility <- function (
     ArchRProj = NULL, 
@@ -60,95 +62,23 @@ addCoAccessibility <- function (
     logFile = createLogFile("addCoAccessibility")
     ){
     
-    ArchR:::.validInput(input = ArchRProj, name = "ArchRProj", valid = c("ArchRProj"))
-    ArchR:::.validInput(input = reducedDims, name = "reducedDims", valid = c("character"))
-    ArchR:::.validInput(input = dimsToUse, name = "dimsToUse", valid = c("numeric", "null"))
-    ArchR:::.validInput(input = scaleDims, name = "scaleDims", valid = c("boolean", "null"))
-    ArchR:::.validInput(input = corCutOff, name = "corCutOff", valid = c("numeric", "null"))
-    ArchR:::.validInput(input = cellsToUse, name = "cellsToUse", valid = c("character", "null"))
-    ArchR:::.validInput(input = AggregationMethod, name = "AggregationMethod", valid = c("character"))
-    ArchR:::.validInput(input = numCellsPerAggregate, name = "numCellsPerAggregate", valid = c("integer"))
-    ArchR:::.validInput(input = numAggregates, name = "numAggregates", valid = c("integer"))
-    ArchR:::.validInput(input = useMatrix, name = "useMatrix", valid = c("character"))
-    ArchR:::.validInput(input = overlapCutoff, name = "overlapCutoff", valid = c("numeric"))
-    ArchR:::.validInput(input = maxDist, name = "maxDist", valid = c("integer"))
-    ArchR:::.validInput(input = scaleTo, name = "scaleTo", valid = c("numeric"))
-    ArchR:::.validInput(input = log2Norm, name = "log2Norm", valid = c("boolean"))
-    ArchR:::.validInput(input = threads, name = "threads", valid = c("integer"))
-    ArchR:::.validInput(input = numPermutations, name = "numPermutations", valid = c("integer"))
-    ArchR:::.validInput(input = verbose, name = "verbose", valid = c("boolean"))
-    ArchR:::.validInput(input = logFile, name = "logFile", valid = c("character"))
-    
+    myParam <- c(as.list(environment()))
+    checkInputParameters(myParam)
     tstart <- Sys.time()
     ArchR:::.startLogging(logFile = logFile)
     ArchR:::.logThis(mget(names(formals()), sys.frame(sys.nframe())), "addCoAccessibility Input-Parameters", logFile = logFile)
     
     set.seed(seed)
     
-    #Get Peak Set
-    if (useMatrix == "PeakMatrix"){
-        peakSet <- getPeakSet(ArchRProj)
-    } else if (useMatrix == "TileMatrix"){
-        tileSet <- getMatrixFromProject(ArchRProj, useMatrix = "TileMatrix")@elementMetadata
-        peakSet <- GRanges(seqnames = tileSet$seqnames, 
-                           ranges = IRanges(start = tileSet$start, width = tileSet$start[2]-tileSet$start[1]))
-        peakSet$idx <- tileSet$idx
-        peakSet$id <- 1:length(peakSet)
-    }
-    
-    #Get Reduced Dims
-    rD <- getReducedDims(ArchRProj, reducedDims = reducedDims, corCutOff = corCutOff, dimsToUse = dimsToUse)
-    if (!is.null(cellsToUse)) {
-        rD <- rD[cellsToUse, , drop = FALSE]
-    }
-    
-    #Subsample
-    ### Select "cell seeds" for aggregation
-    if(AggregationMethod == "unique"){
-        ### Different groups of cell are chosen at random "numPermutations" times and from that the cell group with most distance among cells is selected 
-        ### for low dimensional embedding.
-        # From: https://stackoverflow.com/questions/22152482/choose-n-most-distant-points-in-r
-        bestavg <- 0
-        bestSet <- NA
-        for (i in 1:numPermutations){
-            subset <- rD[sample(1:nrow(rD),numAggregates),]
-            avg <- mean(dist(subset))
-            if (avg > bestavg) {
-                bestavg <- avg
-                bestSet <- subset
-            }
-        }
-        idx <- match(rownames(bestSet), rownames(rD))
-    } else if (AggregationMethod == "ArchR_default"){
-        idx <- sample(seq_len(nrow(rD)), numAggregates, replace = !nrow(rD) >= numAggregates)
-    } else if (AggregationMethod == "single_cell_resolution"){
-        numCellsPerAggregate <- 1
-        if (is.null(cellsToUse)) {
-            numAggregates <- nrow(ArchRProj@cellColData)
-        } else {
-            numAggregates <- length(cellsToUse)
-        }
-        idx <- numCellsPerAggregate:numAggregates
-    }
+    #Keep in mind that "peakSet" is a legacy name for easier comparison with default ArchR script. 
+    #This set can also can be constructed from tile matrix.
+    peakSet <- getSet(ArchRProj, useMatrix)
+    rD <- getFilteredReducedDimensions(ArchRProj, reducedDims, corCutOff, dimsToUse, cellsToUse)
+    idx <- selectCellSeedsForAggregation(ArchRProj, rD, AggregationMethod, numPermutations, numCellsPerAggregate, numAggregates, cellsToUse)
     
     #KNN Matrix
     ArchR:::.logDiffTime(main = "Computing KNN", t1 = tstart, verbose = verbose, logFile = logFile)
-    
-    ### Select closest cells of cell seeds
-    if(AggregationMethod == "unique"){
-        knnObj = matrix(, nrow = 0, ncol = numCellsPerAggregate)
-        ### Select every cell only once (including in the aggregates around seed cells)
-        for (i in 1:numAggregates){
-            seed_cell_rD <- rD[idx[i], ] %>% as.matrix(.) %>% t(.)
-            rownames(seed_cell_rD) <- rownames(rD)[i]
-            used_cells = unique(c(idx, knnObj %>% as.integer()))
-            closest_cells <- ArchR:::.computeKNN(data = rD[-used_cells,], query = seed_cell_rD, k = numCellsPerAggregate-1)
-            names <- rownames(rD[-used_cells,])[as.integer(closest_cells)]
-            knnObj <- rbind(knnObj, c(idx[i], match(names, rownames(rD))))
-        }
-    } else if (AggregationMethod %in% c("ArchR_default", "single_cell_resolution")){
-        knnObj <- ArchR:::.computeKNN(data = rD, query = rD[idx, ], k = numCellsPerAggregate)
-    }
+    knnObj <- selectClosestCellsOfCellSeeds(ArchRProj, rD, idx, AggregationMethod, numAggregates, numCellsPerAggregate)
     
     #Determine Overlap
     ArchR:::.logDiffTime(main = "Identifying Non-Overlapping KNN pairs", t1 = tstart, verbose = verbose, logFile = logFile)
@@ -172,23 +102,7 @@ addCoAccessibility <- function (
     chrj <- gtools::mixedsort(unique(paste0(seqnames(peakSet))))
     stopifnot(identical(chri, chrj))
     
-    #Create Ranges
-    peakSummits <- resize(peakSet, 1, "center")
-    peakWindows <- resize(peakSummits, maxDist, "center")
-    
-    #Create Pairwise Things to Test
-    o <- DataFrame(findOverlaps(peakSummits, peakWindows, ignore.strand = TRUE))
-    o <- o[o[, 1] != o[, 2], ]
-    o$seqnames <- seqnames(peakSet)[o[, 1]]
-    o$idx1 <- peakSet$idx[o[, 1]]
-    o$idx2 <- peakSet$idx[o[, 2]]
-    o$correlation <- -999.999
-    o$Variability1 <- 0.000
-    o$Variability2 <- 0.000
-    ### ADAPTED IL ###    
-    o$PercAccess1 <- 0.000
-    o$PercAccess2 <- 0.000
-    ###
+    o <- createPairwiseThingsToTest(peakSet, maxDist)
     
     #Peak Matrix ColSums
     cS <- ArchR:::.getColSums(getArrowFiles(ArchRProj), chri, verbose = FALSE, useMatrix = useMatrix)
@@ -197,53 +111,13 @@ addCoAccessibility <- function (
     ### Add pseudo-count to gS for non-accessible cell aggregates in all regions of interest
     gS <- gS + 1
     
-    ### Additional metadata for aggregates
-    featureDF <- mcols(peakSet)
-    featureDF$seqnames <- peakSet@seqnames
-    
-    #Group Matrix
-    groupMat <- ArchR:::.getGroupMatrix(
-      ArrowFiles = getArrowFiles(ArchRProj), 
-      featureDF = featureDF, 
-      groupList = knnObj, 
-      useMatrix = useMatrix,
-      verbose = FALSE
-    )
-    
-    #Scale
-    groupMat <- t(t(groupMat) / gS) * scaleTo
-    
-    if (log2Norm) {
-      groupMat <- log2(groupMat + 1)
-    }
-    
-    o@metadata$Aggregates <- knnObj
-    o@metadata$AggregatePeakMatrix <- groupMat
+    o <- addMetadataForAggregates(ArchRProj, o, peakSet, knnObj, useMatrix, gS, log2Norm, scaleTo)
                         
     for (x in seq_along(chri)) {
         
         ArchR:::.logDiffTime(sprintf("Computing Co-Accessibility %s (%s of %s)", chri[x], x, length(chri)), t1 = tstart, verbose = verbose, logFile = logFile)
         
-        #Features
-        featureDF <- mcols(peakSet)[BiocGenerics::which(seqnames(peakSet) == chri[x]), ]
-        featureDF$seqnames <- chri[x]
-        
-        #Group Matrix
-        groupMat <- ArchR:::.getGroupMatrix(
-            ArrowFiles = getArrowFiles(ArchRProj), 
-            featureDF = featureDF, 
-            groupList = knnObj, 
-            useMatrix = useMatrix,
-            threads = threads, 
-            verbose = FALSE
-        )
-        
-        #Scale
-        groupMat <- t(t(groupMat)/gS) * scaleTo
-        
-        if (log2Norm) {
-            groupMat <- log2(groupMat + 1)
-        }
+        groupMat = createGroupMatrix(ArchRProj, peakSet, knnObj, useMatrix, gS, log2Norm, chri[x], scaleTo)
         
         #Correlations
         idx <- BiocGenerics::which(o$seqnames == chri[x])
