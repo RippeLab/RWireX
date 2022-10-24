@@ -57,7 +57,7 @@ added to the group list during k-nearest neighbor calculations.}
 \item{maxDist}{The maximum allowable distance in basepairs between two peaks to consider for co-accessibility.}
 
 \item{scaleTo}{The total insertion counts from the designated group of single cells is summed across all relevant peak regions from
-the \code{peakSet} of the \code{ArchRProject} and normalized to the total depth provided by \code{scaleTo}.}
+the \code{featureSet} of the \code{ArchRProject} and normalized to the total depth provided by \code{scaleTo}.}
 
 \item{log2Norm}{A boolean value indicating whether to log2 transform the single-cell groups prior to computing co-accessibility correlations.}
 

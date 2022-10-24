@@ -1,4 +1,4 @@
-# This file contains helper functions for the addCoAccessibility and getBackgroundCoAccessibility methods. 
+# This file contains helper functions for the getCoAccessibility and getBackgroundCoAccessibility methods. 
 # The separation into smaller functions allows for less repetition, cleaner code and easier further development.
 # Majority of the functions mirror the existing functionality of addCoAccessibility in ArchR. 
 # Some functions are adapted to include the additional functionality in RWireX.
@@ -130,6 +130,28 @@
     }
   } else if (AggregationMethod %in% c("ArchR_default", "single_cell_resolution")){
     knnObj <- ArchR:::.computeKNN(data = reducedDimensions, query = reducedDimensions[idx, ], k = numCellsPerAggregate)
+  }
+  return(knnObj)
+}
+
+#' Filter KNN object.
+#' 
+#' @description The function calculates the overlap between KNNs of each seed cell and keeps those with more than overlapCutoff unique cells in KNN.
+#' It does not apply to single cell level mode of aggregation, because we want to keep all cells. 
+#' @keywords internal
+#' @export
+.filterKNN <- function(knnObj, AggregationMethod, overlapCutoff, numCellsPerAggregate, numAggregates){
+  if (AggregationMethod == "ArchR_default" || AggregationMethod == "unique"){
+    #Determine Overlap
+    keepKnn <- ArchR:::determineOverlapCpp(knnObj, floor(overlapCutoff * numCellsPerAggregate))
+    #Filter out
+    knnObj <- knnObj[keepKnn == 0, ]
+  }
+  else if (AggregationMethod == "single_cell_resolution"){
+    knnObj <- matrix(knnObj, nrow = numAggregates)
+  }
+  else{
+    stop("The aggregation method is not supported!")
   }
   return(knnObj)
 }

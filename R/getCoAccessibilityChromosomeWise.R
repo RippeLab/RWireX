@@ -1,4 +1,4 @@
-#' Add Peak Co-Accessibility to an ArchRProject
+#' Get Peak Co-Accessibility to an ArchRProject
 #' 
 #' This function is an extended version of ArchR package that will add co-accessibility scores between ALL peaks for EACH chromosome in a given ArchRProject. 
 #' There are two new modes of choosing cell aggregates: unique and single_cell_resolution. If you are looking for co-accessibility in homogeneous population,
@@ -22,9 +22,8 @@
 #' @param useMatrix The name of the data matrix to use for calculation of CoAccessibility. Options include "PeakMatrix" or non-binarized "TileMatrix" (binarize = FALSE in addTileMatrix).
 #' @param overlapCutoff The maximum allowable overlap between the current group and all previous groups to permit the current group be
 #' added to the group list during k-nearest neighbor calculations.
-#' @param maxDist The maximum allowable distance in basepairs between two peaks to consider for co-accessibility.
 #' @param scaleTo The total insertion counts from the designated group of single cells is summed across all relevant peak regions from
-#' the `peakSet` of the `ArchRProject` and normalized to the total depth provided by `scaleTo`.
+#' the `featureSet` of the `ArchRProject` and normalized to the total depth provided by `scaleTo`.
 #' @param log2Norm A boolean value indicating whether to log2 transform the single-cell groups prior to computing co-accessibility correlations.
 #' @param seed A number to be used as the seed for random number generation required in knn determination. It is recommended to keep track
 #' of the seed used so that you can reproduce results downstream.
@@ -36,7 +35,7 @@
 #' @import parallel
 #' @export
 
-addCoAccessibilityChromosomeWise <- function (
+getCoAccessibilityChromosomeWise <- function (
     ArchRProj = NULL, 
     reducedDims = "IterativeLSI", 
     dimsToUse = 1:30, 
@@ -48,14 +47,13 @@ addCoAccessibilityChromosomeWise <- function (
     numAggregates = 500,
     useMatrix = "PeakMatrix",
     overlapCutoff = 0.8, 
-    maxDist = 100000, 
     scaleTo = 10^4, 
     log2Norm = TRUE, 
     seed = 1, 
     threads = getArchRThreads(), 
     numPermutations = 1000,
     verbose = TRUE, 
-    logFile = createLogFile("addCoAccessibilityChromosomeWise")
+    logFile = createLogFile("getCoAccessibilityChromosomeWise")
 ){
   
   myParam <- c(as.list(environment()))
@@ -66,9 +64,8 @@ addCoAccessibilityChromosomeWise <- function (
   
   set.seed(seed)
   
-  #Keep in mind that "peakSet" is a legacy name for easier comparison with default ArchR script. 
   #This set can also can be constructed from tile matrix.
-  peakSet <- .getSet(ArchRProj, useMatrix)
+  featureSet <- .getSet(ArchRProj, useMatrix)
   rD <- .getFilteredReducedDimensions(ArchRProj, reducedDims, corCutOff, dimsToUse, cellsToUse)
   idx <- .selectCellSeedsForAggregation(ArchRProj, rD, AggregationMethod, numPermutations, numCellsPerAggregate, numAggregates, cellsToUse)
   
@@ -76,17 +73,11 @@ addCoAccessibilityChromosomeWise <- function (
   ArchR:::.logDiffTime(main = "Computing KNN", t1 = tstart, verbose = verbose, logFile = logFile)
   knnObj <- .selectClosestCellsOfCellSeeds(ArchRProj, rD, idx, AggregationMethod, numAggregates, numCellsPerAggregate)
   
-  #Determine Overlap
+  #Determine Overlap and Filter
   ArchR:::.logDiffTime(main = "Identifying Non-Overlapping KNN pairs", t1 = tstart, verbose = verbose, logFile = logFile)
-  keepKnn <- ArchR:::determineOverlapCpp(knnObj, floor(overlapCutoff * numCellsPerAggregate))
-  
-  #Keep Above Cutoff
-  knnObj <- knnObj[keepKnn == 0, ]
+  knnObj <- .filterKNN(knnObj, AggregationMethod, overlapCutoff, numCellsPerAggregate, numAggregates)
   ArchR:::.logDiffTime(paste0("Identified ", nrow(knnObj), " Groupings!"), t1 = tstart, verbose = verbose, logFile = logFile)
   
-  if (AggregationMethod == "single_cell_resolution"){
-    knnObj <- matrix(knnObj, nrow = numAggregates)
-  }
   
   #Convert To Names List
   knnObj <- lapply(seq_len(nrow(knnObj)), function(x) {
@@ -95,7 +86,7 @@ addCoAccessibilityChromosomeWise <- function (
   
   #Check Chromosomes
   chri <- gtools::mixedsort(ArchR:::.availableChr(getArrowFiles(ArchRProj), subGroup = useMatrix))
-  chrj <- gtools::mixedsort(unique(paste0(seqnames(peakSet))))
+  chrj <- gtools::mixedsort(unique(paste0(seqnames(featureSet))))
   stopifnot(identical(chri, chrj))
   
   #Create DataFrame For Pairwise Things to Test
@@ -111,22 +102,22 @@ addCoAccessibilityChromosomeWise <- function (
   gS <- gS + 1
   
   
-  o <- .addMetadataForAggregates(ArchRProj, o, peakSet, knnObj, useMatrix, gS, log2Norm, scaleTo)
+  o <- .addMetadataForAggregates(ArchRProj, o, featureSet, knnObj, useMatrix, gS, log2Norm, scaleTo)
   
   for (x in seq_along(chri)) {
-    ArchR:::.logDiffTime(sprintf("Computing Co-Accessibility %s (%s of %s)", chri[x], x, length(chri)), t1 = tstart, verbose = verbose, logFile = logFile)
+    ArchR:::.logDiffTime(sprintf("Computing Co-Accessibility for complete chromosome %s (%s of %s)", chri[x], x, length(chri)), t1 = tstart, verbose = verbose, logFile = logFile)
     
-    peaks_in_one_chrom_idx = which(seqnames(peakSet) == chri[x])
+    peaks_in_one_chrom_idx = which(seqnames(featureSet) == chri[x])
     pairwiseComb = combn(peaks_in_one_chrom_idx, 2)
     pairwiseDF = DataFrame(queryHits=pairwiseComb[1,], subjectHits=pairwiseComb[2,])
     pairwiseDF$seqnames <- chri[x]
-    pairwiseDF$idx1 <- peakSet$idx[pairwiseComb[1,]]
-    pairwiseDF$idx2 <- peakSet$idx[pairwiseComb[2,]]
+    pairwiseDF$idx1 <- featureSet$idx[pairwiseComb[1,]]
+    pairwiseDF$idx2 <- featureSet$idx[pairwiseComb[2,]]
     pairwiseDF$correlation <- -999.999
     pairwiseDF$Variability1 <- 0.000
     pairwiseDF$Variability2 <- 0.000
     
-    groupMat = .createGroupMatrix(ArchRProj, peakSet, knnObj, useMatrix, gS, log2Norm, chri[x], scaleTo)
+    groupMat = .createGroupMatrix(ArchRProj, featureSet, knnObj, useMatrix, gS, log2Norm, chri[x], scaleTo)
     
     #Correlations
     corVals <- ArchR:::rowCorCpp(idxX = pairwiseDF$idx1, idxY = pairwiseDF$idx2, X = as.matrix(groupMat), Y = as.matrix(groupMat))
@@ -161,23 +152,13 @@ addCoAccessibilityChromosomeWise <- function (
   o$VarQuantile1 <- ArchR:::.getQuantiles(o$Variability1)
   o$VarQuantile2 <- ArchR:::.getQuantiles(o$Variability2)
   
-  mcols(peakSet) <- NULL
-  o@metadata$peakSet <- peakSet
+  mcols(featureSet) <- NULL
+  o@metadata$FeatureSet <- featureSet
   
-  
-  
-  if (is.null(ArchRProj@peakSet)){
-    ArchRProj <- addPeakSet(ArchRProj = ArchRProj, peakSet = peakSet)
-  }
-  
-  metadata(ArchRProj@peakSet)$CoAccessibility <- o
-  
-  metadata(ArchRProj@peakSet)$SettingsCoAccessibility <- list(reducedDims = reducedDims, dimsToUse = dimsToUse, scaleDims = scaleDims, corCutOff = corCutOff, cellsToUse = cellsToUse,
+  o@metadata$SettingsCoAccessibility <- list(reducedDims = reducedDims, dimsToUse = dimsToUse, scaleDims = scaleDims, corCutOff = corCutOff, cellsToUse = cellsToUse,
                                                               AggregationMethod = AggregationMethod, numCellsPerAggregate = numCellsPerAggregate, numAggregates = numAggregates, useMatrix = useMatrix,
-                                                              overlapCutoff = overlapCutoff, maxDist = maxDist, scaleTo = scaleTo, log2Norm = log2Norm)
-  
+                                                              overlapCutoff = overlapCutoff, scaleTo = scaleTo, log2Norm = log2Norm)
   
   ArchR:::.endLogging(logFile = logFile)
-  
-  ArchRProj
+  return(o)
 }

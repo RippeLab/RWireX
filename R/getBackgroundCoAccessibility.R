@@ -20,7 +20,7 @@
 #' added to the group list during k-nearest neighbor calculations.
 #' @param maxDist The maximum allowable distance in basepairs between two peaks to consider for co-accessibility.
 #' @param scaleTo The total insertion counts from the designated group of single cells is summed across all relevant peak regions from
-#' the `peakSet` of the `ArchRProject` and normalized to the total depth provided by `scaleTo`.
+#' the `featureSet` of the `ArchRProject` and normalized to the total depth provided by `scaleTo`.
 #' @param log2Norm A boolean value indicating whether to log2 transform the single-cell groups prior to computing co-accessibility correlations.
 #' @param seed A number to be used as the seed for random number generation required in knn determination. It is recommended to keep track
 #' of the seed used so that you can reproduce results downstream.
@@ -64,30 +64,19 @@ getBackgroundCoAccessibility <- function(
 
     set.seed(seed)
 
-
-    #Keep in mind that "peakSet" is a legacy name for easier comparison with default ArchR script. 
     #This set can also can be constructed from tile matrix.
-    peakSet <- .getSet(ArchRProj, useMatrix)
+    featureSet <- .getSet(ArchRProj, useMatrix)
     rD <- .getFilteredReducedDimensions(ArchRProj, reducedDims, corCutOff, dimsToUse, cellsToUse)
     idx <- .selectCellSeedsForAggregation(ArchRProj, rD, AggregationMethod, numPermutations, numCellsPerAggregate, numAggregates, cellsToUse)
-    
-
     
     #KNN Matrix
     ArchR:::.logDiffTime(main = "Computing KNN", t1 = tstart, verbose = verbose, logFile = logFile)
     knnObj <- .selectClosestCellsOfCellSeeds(ArchRProj, rD, idx, AggregationMethod, numAggregates, numCellsPerAggregate)
     
-    #Determine Overlap
+    #Determine Overlap and Filter
     ArchR:::.logDiffTime(main = "Identifying Non-Overlapping KNN pairs", t1 = tstart, verbose = verbose, logFile = logFile)
-    keepKnn <- ArchR:::determineOverlapCpp(knnObj, floor(overlapCutoff * numCellsPerAggregate))
-    
-    #Keep Above Cutoff
-    knnObj <- knnObj[keepKnn == 0, ]
+    knnObj <- .filterKNN(knnObj, AggregationMethod, overlapCutoff, numCellsPerAggregate, numAggregates)
     ArchR:::.logDiffTime(paste0("Identified ", nrow(knnObj), " Groupings!"), t1 = tstart, verbose = verbose, logFile = logFile)
-    
-    if (AggregationMethod == "single_cell_resolution"){
-      knnObj <- matrix(knnObj, nrow = numAggregates)
-    }
     
     #Convert To Names List
     knnObj <- lapply(seq_len(nrow(knnObj)), function(x) {
@@ -96,14 +85,14 @@ getBackgroundCoAccessibility <- function(
     
     #Check Chromosomes
     chri <- gtools::mixedsort(ArchR:::.availableChr(getArrowFiles(ArchRProj), subGroup = useMatrix))
-    chrj <- gtools::mixedsort(unique(paste0(seqnames(peakSet))))
+    chrj <- gtools::mixedsort(unique(paste0(seqnames(featureSet))))
     stopifnot(identical(chri, chrj))
 
     #Create Ranges
-    peakSummits <- resize(peakSet, 1, "center")
+    peakSummits <- resize(featureSet, 1, "center")
     peakWindows <- resize(peakSummits, maxDist, "center")
 
-    o <- .createPairwiseThingsToTest(peakSet, maxDist)
+    o <- .createPairwiseThingsToTest(featureSet, maxDist)
     
     o_featShuffle <- o
     o_cellShuffle <- o
@@ -121,7 +110,7 @@ getBackgroundCoAccessibility <- function(
 
         ArchR:::.logDiffTime(sprintf("Computing Background Co-Accessibility %s (%s of %s)", chri[x], x, length(chri)), t1=tstart, verbose=verbose, logFile=logFile)
 
-        groupMat = .createGroupMatrix(ArchRProj, peakSet, knnObj, useMatrix, gS, log2Norm, chri[x], scaleTo)
+        groupMat = .createGroupMatrix(ArchRProj, featureSet, knnObj, useMatrix, gS, log2Norm, chri[x], scaleTo)
         
         ###Shuffle features for background correlations
         groupMat_featShuffle <- apply(groupMat, 2, function(x){sample(x)}) ### shuffle features
@@ -170,10 +159,10 @@ getBackgroundCoAccessibility <- function(
     o_cellShuffle$idx2 <- NULL
     o_cellShuffle <- o_cellShuffle[!is.na(o_cellShuffle$correlation),]
 
-    mcols(peakSet) <- NULL
+    mcols(featureSet) <- NULL
 
-    o_featShuffle@metadata$peakSet <- peakSet             
-    o_cellShuffle@metadata$peakSet <- peakSet
+    o_featShuffle@metadata$featureSet <- featureSet             
+    o_cellShuffle@metadata$featureSet <- featureSet
 
     ArchR:::.endLogging(logFile = logFile)
 

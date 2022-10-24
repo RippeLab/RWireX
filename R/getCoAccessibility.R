@@ -1,4 +1,4 @@
-#' Add Peak Co-Accessibility to an ArchRProject
+#' Get Peak Co-Accessibility to an ArchRProject
 #' 
 #' This function is an extended version of ArchR package that will add co-accessibility scores between peaks in a given ArchRProject. 
 #' There are two new modes of choosing cell aggregates: unique and single_cell_resolution. If you are looking for co-accessibility in homogeneous population,
@@ -24,7 +24,7 @@
 #' added to the group list during k-nearest neighbor calculations.
 #' @param maxDist The maximum allowable distance in basepairs between two peaks to consider for co-accessibility.
 #' @param scaleTo The total insertion counts from the designated group of single cells is summed across all relevant peak regions from
-#' the `peakSet` of the `ArchRProject` and normalized to the total depth provided by `scaleTo`.
+#' the `featureSet` of the `ArchRProject` and normalized to the total depth provided by `scaleTo`.
 #' @param log2Norm A boolean value indicating whether to log2 transform the single-cell groups prior to computing co-accessibility correlations.
 #' @param seed A number to be used as the seed for random number generation required in knn determination. It is recommended to keep track
 #' of the seed used so that you can reproduce results downstream.
@@ -37,7 +37,7 @@
 #' @export
 
 
-addCoAccessibility <- function (
+getCoAccessibility <- function (
     ArchRProj = NULL, 
     reducedDims = "IterativeLSI", 
     dimsToUse = 1:30, 
@@ -56,7 +56,7 @@ addCoAccessibility <- function (
     threads = getArchRThreads(), 
     numPermutations = 1000,
     verbose = TRUE, 
-    logFile = createLogFile("addCoAccessibility")
+    logFile = createLogFile("getCoAccessibility")
     ){
     
     myParam <- c(as.list(environment()))
@@ -67,9 +67,8 @@ addCoAccessibility <- function (
     
     set.seed(seed)
     
-    #Keep in mind that "peakSet" is a legacy name for easier comparison with default ArchR script. 
     #This set can also can be constructed from tile matrix.
-    peakSet <- .getSet(ArchRProj, useMatrix)
+    featureSet <- .getSet(ArchRProj, useMatrix)
     rD <- .getFilteredReducedDimensions(ArchRProj, reducedDims, corCutOff, dimsToUse, cellsToUse)
     idx <- .selectCellSeedsForAggregation(ArchRProj, rD, AggregationMethod, numPermutations, numCellsPerAggregate, numAggregates, cellsToUse)
     
@@ -77,18 +76,11 @@ addCoAccessibility <- function (
     ArchR:::.logDiffTime(main = "Computing KNN", t1 = tstart, verbose = verbose, logFile = logFile)
     knnObj <- .selectClosestCellsOfCellSeeds(ArchRProj, rD, idx, AggregationMethod, numAggregates, numCellsPerAggregate)
     
-    #Determine Overlap
+    #Determine Overlap and Filter
     ArchR:::.logDiffTime(main = "Identifying Non-Overlapping KNN pairs", t1 = tstart, verbose = verbose, logFile = logFile)
-    keepKnn <- ArchR:::determineOverlapCpp(knnObj, floor(overlapCutoff * numCellsPerAggregate))
-    
-    #Keep Above Cutoff
-    knnObj <- knnObj[keepKnn == 0, ]
+    knnObj <- .filterKNN(knnObj, AggregationMethod, overlapCutoff, numCellsPerAggregate, numAggregates)
     ArchR:::.logDiffTime(paste0("Identified ", nrow(knnObj), " Groupings!"), t1 = tstart, verbose = verbose, logFile = logFile)
-    
-    if (AggregationMethod == "single_cell_resolution"){
-        knnObj <- matrix(knnObj, nrow = numAggregates)
-    }
-    
+  
     #Convert To Names List
     knnObj <- lapply(seq_len(nrow(knnObj)), function(x) {
         rownames(rD)[knnObj[x, ]]
@@ -96,10 +88,10 @@ addCoAccessibility <- function (
     
     #Check Chromosomes
     chri <- gtools::mixedsort(ArchR:::.availableChr(getArrowFiles(ArchRProj), subGroup = useMatrix))
-    chrj <- gtools::mixedsort(unique(paste0(seqnames(peakSet))))
+    chrj <- gtools::mixedsort(unique(paste0(seqnames(featureSet))))
     stopifnot(identical(chri, chrj))
     
-    o <- .createPairwiseThingsToTest(peakSet, maxDist)
+    o <- .createPairwiseThingsToTest(featureSet, maxDist)
     
     #Peak Matrix ColSums
     cS <- ArchR:::.getColSums(getArrowFiles(ArchRProj), chri, verbose = FALSE, useMatrix = useMatrix)
@@ -108,13 +100,13 @@ addCoAccessibility <- function (
     ### Add pseudo-count to gS for non-accessible cell aggregates in all regions of interest
     gS <- gS + 1
     
-    o <- .addMetadataForAggregates(ArchRProj, o, peakSet, knnObj, useMatrix, gS, log2Norm, scaleTo)
+    o <- .addMetadataForAggregates(ArchRProj, o, featureSet, knnObj, useMatrix, gS, log2Norm, scaleTo)
                         
     for (x in seq_along(chri)) {
         
         ArchR:::.logDiffTime(sprintf("Computing Co-Accessibility %s (%s of %s)", chri[x], x, length(chri)), t1 = tstart, verbose = verbose, logFile = logFile)
         
-        groupMat = .createGroupMatrix(ArchRProj, peakSet, knnObj, useMatrix, gS, log2Norm, chri[x], scaleTo)
+        groupMat = .createGroupMatrix(ArchRProj, featureSet, knnObj, useMatrix, gS, log2Norm, chri[x], scaleTo)
         
         #Correlations
         idx <- BiocGenerics::which(o$seqnames == chri[x])
@@ -149,23 +141,14 @@ addCoAccessibility <- function (
     o$VarQuantile1 <- ArchR:::.getQuantiles(o$Variability1)
     o$VarQuantile2 <- ArchR:::.getQuantiles(o$Variability2)
                         
-    mcols(peakSet) <- NULL
-    o@metadata$peakSet <- peakSet
+    mcols(featureSet) <- NULL
+    o@metadata$featureSet <- featureSet
     
-    
-    
-    if (is.null(ArchRProj@peakSet)){
-        ArchRProj <- addPeakSet(ArchRProj = ArchRProj, peakSet = peakSet)
-    }
-
-    metadata(ArchRProj@peakSet)$CoAccessibility <- o
-
-    metadata(ArchRProj@peakSet)$SettingsCoAccessibility <- list(reducedDims = reducedDims, dimsToUse = dimsToUse, scaleDims = scaleDims, corCutOff = corCutOff, cellsToUse = cellsToUse,
+    o@metadata$SettingsCoAccessibility <- list(reducedDims = reducedDims, dimsToUse = dimsToUse, scaleDims = scaleDims, corCutOff = corCutOff, cellsToUse = cellsToUse,
                                                                 AggregationMethod = AggregationMethod, numCellsPerAggregate = numCellsPerAggregate, numAggregates = numAggregates, useMatrix = useMatrix,
                                                                 overlapCutoff = overlapCutoff, maxDist = maxDist, scaleTo = scaleTo, log2Norm = log2Norm)
-
                         
     ArchR:::.endLogging(logFile = logFile)
                         
-    ArchRProj
+    return(o)
 }
