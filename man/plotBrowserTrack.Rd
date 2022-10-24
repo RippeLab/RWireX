@@ -25,6 +25,7 @@ plotBrowserTrack(
   ylim = NULL,
   pal = NULL,
   pal_loops = NULL,
+  scaleLim_loops = NULL,
   baseSize = 7,
   scTileSize = 0.5,
   scCellsMax = 100,
@@ -93,6 +94,8 @@ is "ReadsInTSS" which simultaneously normalizes tracks based on sequencing depth
 \item{pal}{A custom palette (see \code{paletteDiscrete} or \code{ArchRPalettes}) used to override coloring for groups.}
 
 \item{pal_loops}{A custom palette (see \code{paletteDiscrete} or \code{ArchRPalettes}) used to override coloring for loops.}
+
+\item{scaleLim_loops}{A numeric vector of length 2 with lower and upper limit for co-accessibility score legend in loop track.}
 
 \item{baseSize}{The numeric font size to be used in the plot. This applies to all plot labels.}
 

@@ -1,6 +1,6 @@
 #' Add Peak Co-Accessibility to an ArchRProject
 #' 
-#' This function is an extended version of ArchR package that will add co-accessibility scores between peaks in a given ArchRProject. 
+#' This function is an extended version of ArchR package that will add co-accessibility scores between ALL peaks for EACH chromosome in a given ArchRProject. 
 #' There are two new modes of choosing cell aggregates: unique and single_cell_resolution. If you are looking for co-accessibility in homogeneous population,
 #' where the difference in accessibility is explained by stochastic nature rather than external influence, consider "single_cell_resolution" mode. There is no aggregation in this mode, hence single cell resolution. 
 #' Either all cells or only the cells specified in cellsToUse are used.
@@ -55,7 +55,7 @@ addCoAccessibilityChromosomeWise <- function (
     threads = getArchRThreads(), 
     numPermutations = 1000,
     verbose = TRUE, 
-    logFile = createLogFile("addCoAccessibility")
+    logFile = createLogFile("addCoAccessibilityChromosomeWise")
 ){
   
   myParam <- c(as.list(environment()))

@@ -5,45 +5,46 @@
 \title{plotCoAccessibilityMap}
 \usage{
 plotCoAccessibilityMap(
-  ArchRProj = NULL,
-  reducedDims = names(ArchRProj@reducedDims)[1],
-  region = NULL,
-  resolution = 1000,
-  ArchRGenome = getArchRGenome(),
-  cor_max = NULL,
-  aggregation_k = 100,
-  aggregation_knnIteration = 500,
-  aggregation_overlapCutoff = 0.8
+  ArchRProj,
+  CoAccessibility,
+  region,
+  genome = getArchRGenome(),
+  useMatrix = "PeakMatrix",
+  main = NULL,
+  onlyPos = FALSE,
+  scaleLim = NULL,
+  rescale = FALSE
 )
 }
 \arguments{
 \item{ArchRProj}{An \code{ArchRProject} object.}
 
-\item{reducedDims}{The name of the \code{reducedDims} object (i.e. "IterativeLSI") to retrieve from the designated \code{ArchRProject}.}
+\item{CoAccessibility}{A GRanges object with co-accessible links from getCoAccessibility function.}
 
-\item{region}{GRanges object of length 1 with region of interest for which co-accessibility should be calculated.}
+\item{region}{GRanges object of length 1 with region of interest for which co-accessibility should be visualized.}
 
-\item{resolution}{Tile size for which co-accessibility should be calculated. Defaults to 1 kb.}
+\item{genome}{Genome and gene annotation to use.}
 
-\item{ArchRGenome}{Used genome and gene annotation.}
+\item{useMatrix}{The name of the data matrix used for calculation of CoAccessibility. Options include "PeakMatrix" or non-binarized "TileMatrix" (binarize = FALSE in addTileMatrix).}
 
-\item{aggregation_k}{The number of k-nearest neighbors to use for creating single-cell groups for correlation analyses (number of cells per aggregate).}
+\item{main}{Title of co-accessibility map.}
 
-\item{aggregation_knnIteration}{The number of k-nearest neighbor groupings to test for passing the supplied overlapCutoff (number of aimed cell aggregates).}
+\item{onlyPos}{Only visualize positive co-accessibility scores.}
 
-\item{aggregation_overlapCutoff}{The maximum allowable overlap between the current group and all previous groups to permit the current group be added to the group list during k-nearest neighbor calculations.}
+\item{scaleLim}{Set limits of co-accessibility scale.}
+
+\item{rescale}{If TRUE, genomic coordinate is rescaled to visualize peaks continously.}
 }
 \value{
-Co-accessibility map, GRanges object of co-accessibility scores, and tile set of region.
+Co-accessibility map
 }
 \description{
-This function returns co-accessibility map of specified genomic region.
+This function returns co-accessibility map of a specified genomic region.
 }
 \examples{
 Coming soon.
 }
 \keyword{archr}
-\keyword{archrwire}
 \keyword{co-accessibility}
 \keyword{coAccessibilityMap}
 \keyword{map}

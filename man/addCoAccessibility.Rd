@@ -11,15 +11,17 @@ addCoAccessibility(
   scaleDims = NULL,
   corCutOff = 0.75,
   cellsToUse = NULL,
-  cellAggregation = "duplicated",
-  k = 100,
-  knnIteration = 500,
+  AggregationMethod = "ArchR_default",
+  numCellsPerAggregate = 100,
+  numAggregates = 500,
+  useMatrix = "PeakMatrix",
   overlapCutoff = 0.8,
   maxDist = 1e+05,
   scaleTo = 10^4,
   log2Norm = TRUE,
   seed = 1,
   threads = getArchRThreads(),
+  numPermutations = 1000,
   verbose = TRUE,
   logFile = createLogFile("addCoAccessibility")
 )
@@ -41,11 +43,13 @@ sequencing depth that is greater than the \code{corCutOff}, it will be excluded 
 
 \item{cellsToUse}{A character vector of cellNames to compute coAccessibility on if desired to run on a subset of the total cells.}
 
-\item{cellAggregation}{Choose cell aggregation method from "duplicated" or "unique". I no cell aggregation should be performed, set k to 1.}
+\item{AggregationMethod}{Choose cell aggregation method from "ArchR_default" (each cell in multiple aggregates), "unique" (each cell in only one aggregate), or "single_cell_resolution" (no cell aggregation, single-cell level).}
 
-\item{k}{The number of k-nearest neighbors to use for creating single-cell groups for correlation analyses.}
+\item{numCellsPerAggregate}{The number of k-nearest neighbors to use for creating single-cell groups for correlation analyses.}
 
-\item{knnIteration}{The number of k-nearest neighbor groupings to test for passing the supplied \code{overlapCutoff}.}
+\item{numAggregates}{The number of k-nearest neighbor groupings to test for passing the supplied \code{overlapCutoff}.}
+
+\item{useMatrix}{The name of the data matrix to use for calculation of CoAccessibility. Options include "PeakMatrix" or non-binarized "TileMatrix" (binarize = FALSE in addTileMatrix).}
 
 \item{overlapCutoff}{The maximum allowable overlap between the current group and all previous groups to permit the current group be
 added to the group list during k-nearest neighbor calculations.}
@@ -62,10 +66,17 @@ of the seed used so that you can reproduce results downstream.}
 
 \item{threads}{The number of threads to be used for parallel computing.}
 
+\item{numPermutations}{The number of permutations for computing a distant group of random cells.
+Increasing this number will not necessarily lead to a more distant group of cells.}
+
 \item{verbose}{A boolean value that determines whether standard output should be printed.}
 
 \item{logFile}{The path to a file to be used for logging ArchR output.}
 }
 \description{
-This function will add co-accessibility scores to peaks in a given ArchRProject
+This function is an extended version of ArchR package that will add co-accessibility scores between peaks in a given ArchRProject.
+There are two new modes of choosing cell aggregates: unique and single_cell_resolution. If you are looking for co-accessibility in homogeneous population,
+where the difference in accessibility is explained by stochastic nature rather than external influence, consider "single_cell_resolution" mode. There is no aggregation in this mode, hence single cell resolution.
+Either all cells or only the cells specified in cellsToUse are used.
+"Unique" mode works similar to the default of ArchR but only allows each cell to be in one aggregate.
 }
