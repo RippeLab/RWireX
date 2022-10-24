@@ -56,7 +56,7 @@ getBackgroundCoAccessibility <- function(
     ){
   
     myParam <- c(as.list(environment()))
-    checkInputParameters(myParam)
+    .checkInputParameters(myParam)
 
     tstart <- Sys.time()
     ArchR:::.startLogging(logFile = logFile)
@@ -67,15 +67,15 @@ getBackgroundCoAccessibility <- function(
 
     #Keep in mind that "peakSet" is a legacy name for easier comparison with default ArchR script. 
     #This set can also can be constructed from tile matrix.
-    peakSet <- getSet(ArchRProj, useMatrix)
-    rD <- getFilteredReducedDimensions(ArchRProj, reducedDims, corCutOff, dimsToUse, cellsToUse)
-    idx <- selectCellSeedsForAggregation(ArchRProj, rD, AggregationMethod, numPermutations, numCellsPerAggregate, numAggregates, cellsToUse)
+    peakSet <- .getSet(ArchRProj, useMatrix)
+    rD <- .getFilteredReducedDimensions(ArchRProj, reducedDims, corCutOff, dimsToUse, cellsToUse)
+    idx <- .selectCellSeedsForAggregation(ArchRProj, rD, AggregationMethod, numPermutations, numCellsPerAggregate, numAggregates, cellsToUse)
     
 
     
     #KNN Matrix
     ArchR:::.logDiffTime(main = "Computing KNN", t1 = tstart, verbose = verbose, logFile = logFile)
-    knnObj <- selectClosestCellsOfCellSeeds(ArchRProj, rD, idx, AggregationMethod, numAggregates, numCellsPerAggregate)
+    knnObj <- .selectClosestCellsOfCellSeeds(ArchRProj, rD, idx, AggregationMethod, numAggregates, numCellsPerAggregate)
     
     #Determine Overlap
     ArchR:::.logDiffTime(main = "Identifying Non-Overlapping KNN pairs", t1 = tstart, verbose = verbose, logFile = logFile)
@@ -103,7 +103,7 @@ getBackgroundCoAccessibility <- function(
     peakSummits <- resize(peakSet, 1, "center")
     peakWindows <- resize(peakSummits, maxDist, "center")
 
-    o <- createPairwiseThingsToTest(peakSet, maxDist)
+    o <- .createPairwiseThingsToTest(peakSet, maxDist)
     
     o_featShuffle <- o
     o_cellShuffle <- o
@@ -121,7 +121,7 @@ getBackgroundCoAccessibility <- function(
 
         ArchR:::.logDiffTime(sprintf("Computing Background Co-Accessibility %s (%s of %s)", chri[x], x, length(chri)), t1=tstart, verbose=verbose, logFile=logFile)
 
-        groupMat = createGroupMatrix(ArchRProj, peakSet, knnObj, useMatrix, gS, log2Norm, chri[x], scaleTo)
+        groupMat = .createGroupMatrix(ArchRProj, peakSet, knnObj, useMatrix, gS, log2Norm, chri[x], scaleTo)
         
         ###Shuffle features for background correlations
         groupMat_featShuffle <- apply(groupMat, 2, function(x){sample(x)}) ### shuffle features
@@ -183,6 +183,3 @@ getBackgroundCoAccessibility <- function(
                                                    quantile(abs(o_cellShuffle$correlation), seq(0.01,1,by=0.01), na.rm=T)),
          BackgroundCoAccessibility = list(featShuffle = o_featShuffle, cellShuffle = o_cellShuffle))
 }
-
-                      
-### Adapted from addCoAccessibility function from https://github.com/GreenleafLab/ArchR/blob/968e4421ce7187a8ac7ea1cf6077412126876d5f/R/IntegrativeAnalysis.R on 22/03/2022

@@ -54,6 +54,9 @@ plotCoAccessibilityMap <- function(
         peaks$id <- 1:length(peaks)
         seqlevels(peaks, pruning.mode="tidy") <- seqlevels(region)
     }
+    else{
+      stop("This matrix is not supported yet. Please use Peak or Tile Matrix instead.")
+    }
     
     resolution <- peaks@ranges@width %>% unique(.)
     

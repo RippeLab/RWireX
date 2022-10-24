@@ -36,9 +36,6 @@
 #' @import parallel
 #' @export
 
-#library(parallel)
-#ToDo: change to package call
-source("./R/coAccessibilityHelper.R")
 
 addCoAccessibility <- function (
     ArchRProj = NULL, 
@@ -63,7 +60,7 @@ addCoAccessibility <- function (
     ){
     
     myParam <- c(as.list(environment()))
-    checkInputParameters(myParam)
+    .checkInputParameters(myParam)
     tstart <- Sys.time()
     ArchR:::.startLogging(logFile = logFile)
     ArchR:::.logThis(mget(names(formals()), sys.frame(sys.nframe())), "addCoAccessibility Input-Parameters", logFile = logFile)
@@ -72,13 +69,13 @@ addCoAccessibility <- function (
     
     #Keep in mind that "peakSet" is a legacy name for easier comparison with default ArchR script. 
     #This set can also can be constructed from tile matrix.
-    peakSet <- getSet(ArchRProj, useMatrix)
-    rD <- getFilteredReducedDimensions(ArchRProj, reducedDims, corCutOff, dimsToUse, cellsToUse)
-    idx <- selectCellSeedsForAggregation(ArchRProj, rD, AggregationMethod, numPermutations, numCellsPerAggregate, numAggregates, cellsToUse)
+    peakSet <- .getSet(ArchRProj, useMatrix)
+    rD <- .getFilteredReducedDimensions(ArchRProj, reducedDims, corCutOff, dimsToUse, cellsToUse)
+    idx <- .selectCellSeedsForAggregation(ArchRProj, rD, AggregationMethod, numPermutations, numCellsPerAggregate, numAggregates, cellsToUse)
     
     #KNN Matrix
     ArchR:::.logDiffTime(main = "Computing KNN", t1 = tstart, verbose = verbose, logFile = logFile)
-    knnObj <- selectClosestCellsOfCellSeeds(ArchRProj, rD, idx, AggregationMethod, numAggregates, numCellsPerAggregate)
+    knnObj <- .selectClosestCellsOfCellSeeds(ArchRProj, rD, idx, AggregationMethod, numAggregates, numCellsPerAggregate)
     
     #Determine Overlap
     ArchR:::.logDiffTime(main = "Identifying Non-Overlapping KNN pairs", t1 = tstart, verbose = verbose, logFile = logFile)
@@ -102,7 +99,7 @@ addCoAccessibility <- function (
     chrj <- gtools::mixedsort(unique(paste0(seqnames(peakSet))))
     stopifnot(identical(chri, chrj))
     
-    o <- createPairwiseThingsToTest(peakSet, maxDist)
+    o <- .createPairwiseThingsToTest(peakSet, maxDist)
     
     #Peak Matrix ColSums
     cS <- ArchR:::.getColSums(getArrowFiles(ArchRProj), chri, verbose = FALSE, useMatrix = useMatrix)
@@ -111,13 +108,13 @@ addCoAccessibility <- function (
     ### Add pseudo-count to gS for non-accessible cell aggregates in all regions of interest
     gS <- gS + 1
     
-    o <- addMetadataForAggregates(ArchRProj, o, peakSet, knnObj, useMatrix, gS, log2Norm, scaleTo)
+    o <- .addMetadataForAggregates(ArchRProj, o, peakSet, knnObj, useMatrix, gS, log2Norm, scaleTo)
                         
     for (x in seq_along(chri)) {
         
         ArchR:::.logDiffTime(sprintf("Computing Co-Accessibility %s (%s of %s)", chri[x], x, length(chri)), t1 = tstart, verbose = verbose, logFile = logFile)
         
-        groupMat = createGroupMatrix(ArchRProj, peakSet, knnObj, useMatrix, gS, log2Norm, chri[x], scaleTo)
+        groupMat = .createGroupMatrix(ArchRProj, peakSet, knnObj, useMatrix, gS, log2Norm, chri[x], scaleTo)
         
         #Correlations
         idx <- BiocGenerics::which(o$seqnames == chri[x])
@@ -172,6 +169,3 @@ addCoAccessibility <- function (
                         
     ArchRProj
 }
-                        
-                        
-### Copied from https://github.com/GreenleafLab/ArchR/blob/968e4421ce7187a8ac7ea1cf6077412126876d5f/R/IntegrativeAnalysis.R on 22/03/2022

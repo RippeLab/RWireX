@@ -1,12 +1,18 @@
-#' This file contains helper functions for the addCoAccessibility and getBackgroundCoAccessibility methods. 
-#' The separation into smaller functions allows for less repetition, cleaner code and easier further development.
-#' Majority of the functions mirror the existing functionality of addCoAccessibility in ArchR. 
-#' Some functions are adapted to include the additional functionality in RWireX.
+# This file contains helper functions for the addCoAccessibility and getBackgroundCoAccessibility methods. 
+# The separation into smaller functions allows for less repetition, cleaner code and easier further development.
+# Majority of the functions mirror the existing functionality of addCoAccessibility in ArchR. 
+# Some functions are adapted to include the additional functionality in RWireX.
 
 `%notin%` <- Negate(`%in%`)
 
-checkInputParameters <- function(parameterList){
+#' Input parameter check.
+#' 
+#' @description The function takes the list of possible parameters and checks the input type.
+#' @keywords internal
+#' @export
+.checkInputParameters <- function(parameterList){
   validInput = list(ArchRProj = c("ArchRProj"),
+                    chromsToUse = c("character", "null"),
                     reducedDims= c("character"),
                     dimsToUse = c("numeric", "null"),
                     scaleDims = c("boolean", "null"),
@@ -33,20 +39,33 @@ checkInputParameters <- function(parameterList){
   }
 }
 
-getSet <- function(ArchRProj, useMatrix){
+#' Feature Set getter
+#' 
+#' @description The function returns feature set based on the specified matrix. 
+#' @keywords internal
+#' @export
+.getSet <- function(ArchRProj, useMatrix){
   if (useMatrix == "PeakMatrix"){
-    peakSet <- getPeakSet(ArchRProj)
+    set <- getPeakSet(ArchRProj)
   } else if (useMatrix == "TileMatrix"){
-    tileSet <- getMatrixFromProject(ArchRProj, useMatrix = "TileMatrix")@elementMetadata
-    peakSet <- GRanges(seqnames = tileSet$seqnames, 
+    set <- getMatrixFromProject(ArchRProj, useMatrix = "TileMatrix")@elementMetadata
+    set <- GRanges(seqnames = tileSet$seqnames, 
                        ranges = IRanges(start = tileSet$start, width = tileSet$start[2]-tileSet$start[1]))
-    peakSet$idx <- tileSet$idx
-    peakSet$id <- 1:length(peakSet)
+    set$idx <- tileSet$idx
+    set$id <- 1:length(set)
   }
-  return(peakSet)
+  else{
+    stop("This analysis only works with Peak or Tile Matrix sofar.")
+  }
+  return(set)
 }
 
-getFilteredReducedDimensions <- function(ArchRProj, reducedDims, corCutOff, dimsToUse, cellsToUse){
+#' Reduced Dimensions getter.
+#' 
+#' @description The function gets the reduced dimensions and, if specified, filters the cells.
+#' @keywords internal
+#' @export
+.getFilteredReducedDimensions <- function(ArchRProj, reducedDims, corCutOff, dimsToUse, cellsToUse){
   rD <- getReducedDims(ArchRProj, reducedDims = reducedDims, corCutOff = corCutOff, dimsToUse = dimsToUse)
   if (!is.null(cellsToUse)) {
     rD <- rD[cellsToUse, , drop = FALSE]
@@ -54,7 +73,14 @@ getFilteredReducedDimensions <- function(ArchRProj, reducedDims, corCutOff, dims
   return(rD)
 }
 
-selectCellSeedsForAggregation <-function(ArchRProj, reducedDimensions, AggregationMethod, numPermutations, numCellsPerAggregate, numAggregates, cellsToUse){
+
+#' Cell seeds selection.
+#' 
+#' @description The function creates the list of cells on which the co-accessibility analysis is performed.
+#' Depends on the AggregationMethod parameter.
+#' @keywords internal
+#' @export
+.selectCellSeedsForAggregation <-function(ArchRProj, reducedDimensions, AggregationMethod, numPermutations, numCellsPerAggregate, numAggregates, cellsToUse){
   ### Select "cell seeds" for aggregation
   if(AggregationMethod == "unique"){
     ### Different groups of cell are chosen at random "numPermutations" times and from that the cell group with most distance among cells is selected 
@@ -85,7 +111,12 @@ selectCellSeedsForAggregation <-function(ArchRProj, reducedDimensions, Aggregati
   return(idx)
 }
 
-selectClosestCellsOfCellSeeds <- function(ArchRProj, reducedDimensions, idx, AggregationMethod, numAggregates, numCellsPerAggregate){
+#' Closest cells to seeds selection.
+#' 
+#' @description The function performs KNN to find the closest cells to seeds.
+#' @keywords internal
+#' @export
+.selectClosestCellsOfCellSeeds <- function(ArchRProj, reducedDimensions, idx, AggregationMethod, numAggregates, numCellsPerAggregate){
   if(AggregationMethod == "unique"){
     knnObj = matrix(, nrow = 0, ncol = numCellsPerAggregate)
     ### Select every cell only once (including in the aggregates around seed cells)
@@ -103,7 +134,12 @@ selectClosestCellsOfCellSeeds <- function(ArchRProj, reducedDimensions, idx, Agg
   return(knnObj)
 }
 
-createPairwiseThingsToTest <- function(peakSet, maxDist){
+#' Pairwise list of features.
+#' 
+#' @description The function creates the pairwise list of features for the co-accessibility analysis.
+#' @keywords internal
+#' @export
+.createPairwiseThingsToTest <- function(peakSet, maxDist){
   #Create Ranges
   peakSummits <- resize(peakSet, 1, "center")
   peakWindows <- resize(peakSummits, maxDist, "center")
@@ -122,8 +158,12 @@ createPairwiseThingsToTest <- function(peakSet, maxDist){
   return(o)
 }
   
-  
-addMetadataForAggregates <- function(ArchRProj, o, peakSet, knnObj, useMatrix, gS, log2Norm, scaleTo){
+#' Adding matrix metadata.
+#' 
+#' @description The function adds closest cells to seeds and normalized matrix as metadata to the analysis result.
+#' @keywords internal
+#' @export  
+.addMetadataForAggregates <- function(ArchRProj, o, peakSet, knnObj, useMatrix, gS, log2Norm, scaleTo){
   ### Additional metadata for aggregates
   featureDF <- mcols(peakSet)
   featureDF$seqnames <- peakSet@seqnames
@@ -149,7 +189,12 @@ addMetadataForAggregates <- function(ArchRProj, o, peakSet, knnObj, useMatrix, g
   return(o)
 }
 
-createGroupMatrix <- function(ArchRProj, peakSet, knnObj, useMatrix, gS, log2Norm, chr, scaleTo){
+#' Get and normalize Group Matrix.
+#' 
+#' @description The function extracts the matrix for the given features and scales/normalizes it. 
+#' @keywords internal
+#' @export
+.createGroupMatrix <- function(ArchRProj, peakSet, knnObj, useMatrix, gS, log2Norm, chr, scaleTo){
   #Features
   featureDF <- mcols(peakSet)[BiocGenerics::which(seqnames(peakSet) == chr), ]
   featureDF$seqnames <- chr
