@@ -1,6 +1,6 @@
 Package: RWireX
 Title: Co-accessibility analysis of scATAC-seq data to identify stochastically occuring co-accessible links
-Version: 0.1.00
+Version: 0.2.01
 Authors@R: 
     person(given = "Isabelle",
            family = "Lander",

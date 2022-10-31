@@ -1,10 +1,9 @@
 #' Get Peak Co-Accessibility to an ArchRProject
 #' 
-#' This function is an extended version of ArchR package that will add co-accessibility scores between peaks in a given ArchRProject. 
-#' There are two new modes of choosing cell aggregates: unique and single_cell_resolution. If you are looking for co-accessibility in homogeneous population,
-#' where the difference in accessibility is explained by stochastic nature rather than external influence, consider "single_cell_resolution" mode. There is no aggregation in this mode, hence single cell resolution. 
-#' Either all cells or only the cells specified in cellsToUse are used.
-#' "Unique" mode works similar to the default of ArchR but only allows each cell to be in one aggregate. 
+#' This function combines and extends ArchR::addCoAccessibility and ArchR::getCoAccessibility and will calculate co-accessibility scores between peaks or tiles of a given ArchRProject. 
+#' There are two new modes of choosing cell aggregates: unique and single_cell_resolution. If you are looking to investigate gene regulation in cis, we recommend using the "single_cell_resolution" mode. There is no aggregation in this mode, hence single cell resolution. 
+#' If you are looking to investigate gene regulation in trans, you can use either "ArchR_default" or the "Unique" aggregation mode. "Unique" works similar to the default of ArchR but only allows each cell to be in one cell aggregate. 
+#' Additionally, you can choose between calculating co-accessiblity for peaks or genomic tiles by setting "PeakMatrix" or "TileMatrix". Especially for gene regulation in trans, the tile matrix might be of interest.
 #'
 #' @param ArchRProj An `ArchRProject` object.
 #' @param reducedDims The name of the `reducedDims` object (i.e. "IterativeLSI") to retrieve from the designated `ArchRProject`.
