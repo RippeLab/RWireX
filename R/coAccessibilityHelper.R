@@ -100,12 +100,6 @@
   } else if (AggregationMethod == "ArchR_default"){
     idx <- sample(seq_len(nrow(reducedDimensions)), numAggregates, replace = !nrow(reducedDimensions) >= numAggregates)
   } else if (AggregationMethod == "single_cell_resolution"){
-    numCellsPerAggregate <- 1
-    if (is.null(cellsToUse)) {
-      numAggregates <- nrow(ArchRProj@cellColData)
-    } else {
-      numAggregates <- length(cellsToUse)
-    }
     idx <- numCellsPerAggregate:numAggregates
   }
   return(idx)

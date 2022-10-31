@@ -1,4 +1,4 @@
-#' Get Peak Co-Accessibility to an ArchRProject
+#' Get Co-Accessibility to an ArchRProject
 #' 
 #' This function is an extended version of ArchR package that will add co-accessibility scores between ALL peaks for EACH chromosome in a given ArchRProject. 
 #' There are two new modes of choosing cell aggregates: unique and single_cell_resolution. If you are looking for co-accessibility in homogeneous population,
@@ -63,6 +63,16 @@ getCoAccessibilityChromosomeWise <- function (
   ArchR:::.logThis(mget(names(formals()), sys.frame(sys.nframe())), "addCoAccessibility Input-Parameters", logFile = logFile)
   
   set.seed(seed)
+  
+  #Change numAggregates for single cell
+  if (AggregationMethod == "single_cell_resolution"){
+    numCellsPerAggregate <- 1
+    if (is.null(cellsToUse)) {
+      numAggregates <- nrow(ArchRProj@cellColData)
+    } else {
+      numAggregates <- length(cellsToUse)
+    }
+  }
   
   #This set can also can be constructed from tile matrix.
   featureSet <- .getSet(ArchRProj, useMatrix)
