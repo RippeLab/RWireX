@@ -26,5 +26,6 @@ Collate:
     'getCoAccessibility.R'
     'getBackgroundCoAccessibility.R'
     'getCoAccessibilityChromosomeWise.R'
+    'filterCoAccessibility.R'
     'plotBrowserTrack.R'
     'plotCoAccessibilityMap.R'

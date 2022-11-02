@@ -168,7 +168,7 @@ getCoAccessibilityChromosomeWise <- function (
   o@metadata$SettingsCoAccessibility <- list(reducedDims = reducedDims, dimsToUse = dimsToUse, scaleDims = scaleDims, corCutOff = corCutOff, cellsToUse = cellsToUse,
                                                               AggregationMethod = AggregationMethod, numCellsPerAggregate = numCellsPerAggregate, numAggregates = numAggregates, useMatrix = useMatrix,
                                                               overlapCutoff = overlapCutoff, scaleTo = scaleTo, log2Norm = log2Norm)
-  
+  o <- .createLoopsSameChromosome(o)
   ArchR:::.endLogging(logFile = logFile)
   return(o)
 }

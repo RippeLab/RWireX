@@ -149,6 +149,8 @@ getCoAccessibility <- function (
     o$FDR <- p.adjust(o$Pval, method = "fdr")
     o$VarQuantile1 <- ArchR:::.getQuantiles(o$Variability1)
     o$VarQuantile2 <- ArchR:::.getQuantiles(o$Variability2)
+    
+    
                         
     mcols(featureSet) <- NULL
     o@metadata$featureSet <- featureSet
@@ -156,7 +158,7 @@ getCoAccessibility <- function (
     o@metadata$SettingsCoAccessibility <- list(reducedDims = reducedDims, dimsToUse = dimsToUse, scaleDims = scaleDims, corCutOff = corCutOff, cellsToUse = cellsToUse,
                                                                 AggregationMethod = AggregationMethod, numCellsPerAggregate = numCellsPerAggregate, numAggregates = numAggregates, useMatrix = useMatrix,
                                                                 overlapCutoff = overlapCutoff, maxDist = maxDist, scaleTo = scaleTo, log2Norm = log2Norm)
-                        
+    o <- .createLoopsSameChromosome(o)
     ArchR:::.endLogging(logFile = logFile)
                         
     return(o)

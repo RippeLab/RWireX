@@ -30,6 +30,9 @@
                     threads = c("integer"),
                     numPermutations = c("integer"),
                     verbose = c("boolean"),
+                    corCutOff = c("numeric"),
+                    resolution = c("integer", "null"),
+                    returnLoops = c("boolean"),
                     logFile = c("character"))
   for(parameter in names(parameterList)){
     if (parameter %notin% names(validInput)){
@@ -232,4 +235,23 @@
     groupMat <- log2(groupMat + 1)
   }
   return(groupMat)
+}
+
+#' Create Loops between Peaks.
+#' 
+#' @description The function creates loops between pairs of peaks from peak indices.
+#' @keywords internal
+#' @export
+.createLoopsSameChromosome <- function(coA){
+  peakSummits <- resize(metadata(coA)$featureSet, 1, "center")
+  summitTiles <- start(peakSummits)
+  
+  loops <- ArchR:::.constructGR(
+    seqnames = seqnames(peakSummits[coA[,1]]),
+    start = summitTiles[coA[,1]],
+    end = summitTiles[coA[,2]]
+  )
+  coA$Loops = loops
+  coA = coA[!duplicated(coA$Loops),]
+  return(coA)
 }

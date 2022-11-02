@@ -2,7 +2,7 @@
 % Please edit documentation in R/getCoAccessibilityChromosomeWise.R
 \name{getCoAccessibilityChromosomeWise}
 \alias{getCoAccessibilityChromosomeWise}
-\title{Get Peak Co-Accessibility to an ArchRProject}
+\title{Get Co-Accessibility to an ArchRProject}
 \usage{
 getCoAccessibilityChromosomeWise(
   ArchRProj = NULL,
