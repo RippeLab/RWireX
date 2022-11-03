@@ -3,6 +3,8 @@
 #' This function filters the co-accessibility by the specified parameters, like correlation cutoff or percent of accessible cells. 
 #' Additionally it can change the resolution of peaks to make the plots less convoluted.
 #' 
+#' When the resolution parameter is set, smaller loops are collapsed into one and the best correlation value is kept for this loop (same way as in the original ArchR). 
+#' 
 #' @param coAccessibility A coAccessibility DataFrame created by one of the coAccessibility functions.
 #' @param corCutOff A numeric describing the minimum numeric peak-to-peak correlation to return.
 #' @param perAccess A numeric describing the minimum percent of accessible cells in both peaks in each pair.
@@ -17,7 +19,6 @@ filterCoAccessibility <- function(
     perAccess = NULL,
     resolution = NULL
 ){
-  
   if(is.null(coAccessibility)){
     
     return(NULL)
@@ -48,8 +49,11 @@ filterCoAccessibility <- function(
       start = summitTiles[coAccessibility[,1]],
       end = summitTiles[coAccessibility[,2]]
     )
+    
     coAccessibility$Loops = loops
+    coAccessibility = coAccessibility[order(coAccessibility$correlation, decreasing=TRUE),]
     coAccessibility = coAccessibility[!duplicated(coAccessibility$Loops),]
+    coAccessibility = coAccessibility[coAccessibility$Loops@ranges@width > 0,]
   }
   return(coAccessibility)
   

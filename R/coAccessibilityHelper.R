@@ -16,7 +16,6 @@
                     reducedDims= c("character"),
                     dimsToUse = c("numeric", "null"),
                     scaleDims = c("boolean", "null"),
-                    corCutOff = c("numeric", "null"),
                     cellsToUse = c("character", "null"),
                     AggregationMethod = c("character"),
                     numCellsPerAggregate = c("integer"),
@@ -31,8 +30,6 @@
                     numPermutations = c("integer"),
                     verbose = c("boolean"),
                     corCutOff = c("numeric"),
-                    resolution = c("integer", "null"),
-                    returnLoops = c("boolean"),
                     logFile = c("character"))
   for(parameter in names(parameterList)){
     if (parameter %notin% names(validInput)){
