@@ -53,13 +53,19 @@ plotCoAccessibilityMap <- function(
         peaks$idx <- tileSet$idx
         peaks$id <- 1:length(peaks)
         seqlevels(peaks, pruning.mode="tidy") <- seqlevels(region)
+        if (rescale){
+          print("NOT allowed to RESCALE tile matrix. Setting RESCALE to FALSE!")
+          rescale = FALSE
+        }
     }
     else{
       stop("This matrix is not supported yet. Please use Peak or Tile Matrix instead.")
     }
     
     resolution <- peaks@ranges@width %>% unique(.)
-    
+    if (length(resolution) != 1){
+      stop("Peaks must be the same width. Consider using another algorithm or resize your peaks.")
+    }
     ### Get genome
     genome <- tolower(genome)
     
@@ -140,11 +146,14 @@ plotCoAccessibilityMap <- function(
         y_genes <- 10
         y_label <- 11.5
     }
-    plotGenes(params = params_obj, stroke = 1, fontsize = 15, fontcolor = c("red", "dodgerblue2"), fill = c("red", "dodgerblue2"), bg = "white",
-                                 strandLabels = FALSE, y = y_genes, height = 3)
-    plotText(label = "Genes", fontcolor = "black", fontsize = 18, rot = 90,
-                    x = 0.1, y = y_label, just = c("top","center"), default.units = "inches")
     
+    if (!rescale){
+      plotGenes(params = params_obj, stroke = 1, fontsize = 15, fontcolor = c("red", "dodgerblue2"), fill = c("red", "dodgerblue2"), bg = "white",
+                strandLabels = FALSE, y = y_genes, height = 3)
+      plotText(label = "Genes", fontcolor = "black", fontsize = 18, rot = 90,
+               x = 0.1, y = y_label, just = c("top","center"), default.units = "inches")
+    }
+   
     ## Plot peaks
     if (useMatrix == "PeakMatrix" & rescale){
         plotText(label = "Rescaled peaks", fontcolor = "black", fontsize = 18,

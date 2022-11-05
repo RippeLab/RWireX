@@ -29,6 +29,7 @@
                     threads = c("integer"),
                     numPermutations = c("integer"),
                     verbose = c("boolean"),
+                    returnLoops = c("boolean"),
                     corCutOff = c("numeric"),
                     logFile = c("character"))
   for(parameter in names(parameterList)){
@@ -38,6 +39,28 @@
     ArchR:::.validInput(input = parameterList[[parameter]], name = parameter, valid = validInput[[parameter]])
   }
 }
+
+#' Cell number parameter check.
+#' 
+#' @description The function checks whether there are enough cells and adapts parameters if needed.
+#' @keywords internal
+#' @export
+.checkNumAggregatesAndCellsPerAggregate <- function(AggregationMethod, numAggregates, numCellsPerAggregate, cells_number){
+  if (AggregationMethod == "single_cell_resolution"){
+    numCellsPerAggregate <- 1
+    numAggregates <- cells_number
+    return(list(numAggregates, numCellsPerAggregate))
+  }
+  else if (AggregationMethod == "unique"){
+    if (cells_number < numAggregates*numCellsPerAggregate){
+      stop("Not enough cells! Product of numAggregates and  numCellsPerAggregate must be less or equal to the number of cells!")
+    }
+  }
+
+  return(list(numAggregates, numCellsPerAggregate))
+}
+
+
 
 #' Feature Set getter
 #' 
@@ -111,16 +134,28 @@
 #' @keywords internal
 #' @export
 .selectClosestCellsOfCellSeeds <- function(ArchRProj, reducedDimensions, idx, AggregationMethod, numAggregates, numCellsPerAggregate){
+  expand = 10
   if(AggregationMethod == "unique"){
+    cell_number = nrow(reducedDimensions)
+    if (numCellsPerAggregate*expand > cell_number-numAggregates){
+      error("Not enough cells to consider for possible unique aggregates. Consider lowering numCellsPerAggregate or choosing another algorithm.")
+    }
+    used_cells = unique(c(idx))
+    seed_cells_rD <- reducedDimensions[idx, ] %>% as.matrix(.)
+    closest_cells <- ArchR:::.computeKNN(data = reducedDimensions[-used_cells,], query = seed_cells_rD, k = numCellsPerAggregate*expand)
+    
     knnObj = matrix(, nrow = 0, ncol = numCellsPerAggregate)
     ### Select every cell only once (including in the aggregates around seed cells)
     for (i in 1:numAggregates){
-      seed_cell_rD <- reducedDimensions[idx[i], ] %>% as.matrix(.) %>% t(.)
-      rownames(seed_cell_rD) <- rownames(reducedDimensions)[i]
-      used_cells = unique(c(idx, knnObj %>% as.integer()))
-      closest_cells <- ArchR:::.computeKNN(data = reducedDimensions[-used_cells,], query = seed_cell_rD, k = numCellsPerAggregate-1)
-      names <- rownames(reducedDimensions[-used_cells,])[as.integer(closest_cells)]
-      knnObj <- rbind(knnObj, c(idx[i], match(names, rownames(reducedDimensions))))
+      names <- rownames(reducedDimensions[-idx,])[as.integer(closest_cells[i,])]
+      idx_closest_cells = match(names, rownames(reducedDimensions))
+      neighbours = idx_closest_cells[idx_closest_cells %notin% used_cells]
+      if  (length(neighbours)>=numCellsPerAggregate){
+        seed_closest_cells = neighbours[1:numCellsPerAggregate]
+        
+        knnObj <- rbind(knnObj, c(seed_closest_cells))
+        used_cells = unique(c(idx, knnObj %>% as.integer()))
+      }
     }
   } else if (AggregationMethod %in% c("ArchR_default", "single_cell_resolution")){
     knnObj <- ArchR:::.computeKNN(data = reducedDimensions, query = reducedDimensions[idx, ], k = numCellsPerAggregate)
@@ -135,7 +170,7 @@
 #' @keywords internal
 #' @export
 .filterKNN <- function(knnObj, AggregationMethod, overlapCutoff, numCellsPerAggregate, numAggregates){
-  if (AggregationMethod == "ArchR_default" || AggregationMethod == "unique"){
+  if (AggregationMethod == "ArchR_default"){
     #Determine Overlap
     keepKnn <- ArchR:::determineOverlapCpp(knnObj, floor(overlapCutoff * numCellsPerAggregate))
     #Filter out
@@ -143,6 +178,9 @@
   }
   else if (AggregationMethod == "single_cell_resolution"){
     knnObj <- matrix(knnObj, nrow = numAggregates)
+  }
+  else if(AggregationMethod == "unique"){
+    return(knnObj)
   }
   else{
     stop("The aggregation method is not supported!")
@@ -158,7 +196,7 @@
 .createPairwiseThingsToTest <- function(peakSet, maxDist){
   #Create Ranges
   peakSummits <- resize(peakSet, 1, "center")
-  peakWindows <- resize(peakSummits, maxDist, "center")
+  peakWindows <- resize(peakSummits, 2*maxDist + 1, "center")
   
   #Create Pairwise Things to Test
   o <- DataFrame(findOverlaps(peakSummits, peakWindows, ignore.strand = TRUE))
@@ -171,6 +209,7 @@
   o$Variability2 <- 0.000
   o$PercAccess1 <- 0.000
   o$PercAccess2 <- 0.000
+  o$PercAccessMean <- 0.000
   return(o)
 }
   
@@ -248,7 +287,15 @@
     start = summitTiles[coA[,1]],
     end = summitTiles[coA[,2]]
   )
-  coA$Loops = loops
-  coA = coA[!duplicated(coA$Loops),]
-  return(coA)
+  
+  mcols(loops) <- coA
+
+  loops <- loops[order(mcols(loops)$correlation, decreasing=TRUE)]
+  loops <- unique(loops)
+  loops <- loops[width(loops) > 0]
+  loops <- sort(sortSeqlevels(loops))
+  
+  loops <- SimpleList(CoAccessibility = loops)
+  metadata(loops) = metadata(coA)
+  return(loops)
 }

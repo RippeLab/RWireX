@@ -20,6 +20,7 @@ getCoAccessibility(
   scaleTo = 10^4,
   log2Norm = TRUE,
   seed = 1,
+  returnLoops = FALSE,
   threads = getArchRThreads(),
   numPermutations = 1000,
   verbose = TRUE,
@@ -63,6 +64,9 @@ the \code{featureSet} of the \code{ArchRProject} and normalized to the total dep
 
 \item{seed}{A number to be used as the seed for random number generation required in knn determination. It is recommended to keep track
 of the seed used so that you can reproduce results downstream.}
+
+\item{returnLoops}{A boolean indicating to return the co-accessibility signal as a \code{GRanges} "loops" object designed for use with
+the \code{ArchRBrowser()} or as an \code{ArchRBrowserTrack()}}
 
 \item{threads}{The number of threads to be used for parallel computing.}
 

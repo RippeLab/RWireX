@@ -72,10 +72,8 @@ plotBrowserTrack <- function(
   threads = getArchRThreads(), 
   ylim = NULL,
   pal = NULL,
-  ### Adapted IL ###  
   pal_loops = NULL,
   scaleLim_loops = NULL,
-  ###
   baseSize = 7,
   scTileSize = 0.5,
   scCellsMax = 100,
@@ -107,10 +105,8 @@ plotBrowserTrack <- function(
   ArchR:::.validInput(input = threads, name = "threads", valid = c("integer"))
   ArchR:::.validInput(input = ylim, name = "ylim", valid = c("numeric", "null"))
   ArchR:::.validInput(input = pal, name = "pal", valid = c("palette", "null"))
-  ### Adapted IL ###
   ArchR:::.validInput(input = pal_loops, name = "pal_loops", valid = c("palette", "null"))
   ArchR:::.validInput(input = scaleLim_loops, name = "scaleLim_loops", valid = c("numeric", "null"))
-  ###
   ArchR:::.validInput(input = baseSize, name = "baseSize", valid = "numeric")
   ArchR:::.validInput(input = scTileSize, name = "scTileSize", valid = "numeric")
   ArchR:::.validInput(input = scCellsMax, name = "scCellsMax", valid = "integer")
@@ -346,9 +342,7 @@ plotBrowserTrack <- function(
   region = NULL, 
   title = "LoopTrack", 
   pal = NULL,
-  ### ADAPTED IL ###
   coaccess_lim = NULL,
-  ###
   baseSize = 9, 
   facetbaseSize = 9,
   featureWidth = 2, 
@@ -358,16 +352,10 @@ plotBrowserTrack <- function(
   logFile = NULL
   ){
   
-  ### ADAPTED IL ###
-  #getArchDF <- function(lp, r = 100){
   getArchDF <- function(lp, r = 1){
-  ###
     angles <- seq(pi, 2*pi,length.out=100)
     rx <- (end(lp)-start(lp))/2
-    ### ADAPTED IL ###
-    #rscale <- r * (rx/max(rx))
     rscale <- r * apply(data.frame(lp$PercAccess1, lp$PercAccess2), 1, mean)
-    ###
     cx <- start(lp) + rx
     if(is.null(mcols(lp)$value)){
       mcols(lp)$value <- 1
@@ -388,11 +376,6 @@ plotBrowserTrack <- function(
       stop("Loops is not a GRanges or a list of GRanges! Please supply valid input!")
     }
         
-    ### ADAPTED IL ###
-    #valueMin <- min(unlist(lapply(loops, function(x) min(x$value))))
-    #valueMax <- max(unlist(lapply(loops, function(x) max(x$value))))
-    ###
-                                  
     loopO <- lapply(seq_along(loops), function(x){
        subLoops <- subsetByOverlaps(loops[[x]], region, ignore.strand = TRUE, type = "within") 
        if(length(subLoops)>0){
@@ -405,7 +388,6 @@ plotBrowserTrack <- function(
     }) %>% Reduce("rbind",.)
     ArchR:::.logThis(loopO, "loopO", logFile = logFile)
     
-    ### ADAPTED IL ###
     if (is.null(coaccess_lim)){
         valueMin <- min(loopO$value)
         valueMax <- max(loopO$value)
@@ -414,7 +396,6 @@ plotBrowserTrack <- function(
         valueMax <- max(coaccess_lim)
     }
     valueMax_PercAccess <- min(loopO$y)
-    ###
                                       
                                       
     testDim <- tryCatch({
@@ -440,29 +421,16 @@ plotBrowserTrack <- function(
       p <- ggplot(data = data.frame(loopO), aes(x = x, y = y, group = id, color = value)) +
         geom_line() +
         facet_grid(name ~ .) +
-        ### ADAPTED IL ###
-        #ylab("") + 
-        #coord_cartesian(ylim = c(-100,0)) +
         ylab("Percent accessible cells/aggregates") + 
         coord_cartesian(ylim = c(valueMax_PercAccess,0)) +
-        ###
         scale_x_continuous(limits = c(start(region), end(region)), expand = c(0,0)) +
         scale_color_gradientn(colors = pal, limits = c(valueMin, valueMax)) +
-        ### ADAPTED IL ###
-        #theme(legend.text = element_text(size = baseSize)) +
-        #
-        ###
         theme_ArchR(baseSize = baseSize, baseLineSize = borderWidth, baseRectSize = borderWidth, legendPosition = "right") +
         theme(strip.text.y = element_text(size = facetbaseSize, angle = 0), strip.background = element_blank(),
           legend.box.background = element_rect(color = NA)) +
-        ### ADAPTED IL ###
-        #guides(color= guide_colorbar(barwidth = 0.75, barheight = 3))
         guides(color= guide_colorbar(barwidth = 1, barheight = 4)) +
         theme(legend.text = element_text(size = 10), legend.title = element_text(size = facetbaseSize))
-        ###
-      
-      ### ADAPTED IL ###
-      ### Remove minus sign from y-axis labels
+ 
       ### From https://stackoverflow.com/questions/51784640/ggplot-how-to-retrieve-values-for-axis-labels (07/04/2022)
       if (utils::packageVersion("ggplot2") >= "3.3.0"){
           y_labs <- ggplot_build(p)$layout$panel_params[[1]]$y$get_labels()
@@ -477,7 +445,6 @@ plotBrowserTrack <- function(
       
       p <- p + scale_y_continuous(name = "Percent accessible", breaks = y_breaks, labels = gsub("-", "", y_labs)) + 
                 theme(axis.title.y=element_text(size=facetbaseSize), axis.text.y=element_text(size=10))
-      ###
         
     }else{
 

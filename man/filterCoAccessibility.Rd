@@ -5,22 +5,25 @@
 \title{Filter the co-accessibility from an ArchRProject}
 \usage{
 filterCoAccessibility(
-  coAccessibility = NULL,
+  coAccessibilityLoops = NULL,
   corCutOff = NULL,
   perAccess = NULL,
   resolution = NULL
 )
 }
 \arguments{
-\item{coAccessibility}{A coAccessibility DataFrame created by one of the coAccessibility functions.}
-
 \item{corCutOff}{A numeric describing the minimum numeric peak-to-peak correlation to return.}
 
 \item{perAccess}{A numeric describing the minimum percent of accessible cells in both peaks in each pair.}
 
 \item{resolution}{A numeric describing the bp resolution to use when returning loops. This helps with overplotting of correlated regions.}
+
+\item{coAccessibility}{A coAccessibility DataFrame created by one of the coAccessibility functions.}
 }
 \description{
 This function filters the co-accessibility by the specified parameters, like correlation cutoff or percent of accessible cells.
 Additionally it can change the resolution of peaks to make the plots less convoluted.
+}
+\details{
+When the resolution parameter is set, smaller loops are collapsed into one and the best correlation value is kept for this loop (same way as in the original ArchR).
 }

@@ -64,15 +64,9 @@ getBackgroundCoAccessibility <- function(
 
     set.seed(seed)
     
-    #Change numAggregates for single cell
-    if (AggregationMethod == "single_cell_resolution"){
-      numCellsPerAggregate <- 1
-      if (is.null(cellsToUse)) {
-        numAggregates <- nrow(ArchRProj@cellColData)
-      } else {
-        numAggregates <- length(cellsToUse)
-      }
-    }
+    checkedParams = .checkNumAggregatesAndCellsPerAggregate(AggregationMethod, numAggregates, numCellsPerAggregate, cells_number)
+    numAggregates = checkedParams[[1]]
+    numCellsPerAggregate = checkedParams[[2]]
 
     #This set can also can be constructed from tile matrix.
     featureSet <- .getSet(ArchRProj, useMatrix)

@@ -21,6 +21,7 @@ getCoAccessibilityChromosomeWise(
   seed = 1,
   threads = getArchRThreads(),
   numPermutations = 1000,
+  returnLoops = FALSE,
   verbose = TRUE,
   logFile = createLogFile("getCoAccessibilityChromosomeWise")
 )
@@ -65,6 +66,9 @@ of the seed used so that you can reproduce results downstream.}
 
 \item{numPermutations}{The number of permutations for computing a distant group of random cells.
 Increasing this number will not necessarily lead to a more distant group of cells.}
+
+\item{returnLoops}{A boolean indicating to return the co-accessibility signal as a \code{GRanges} "loops" object designed for use with
+the \code{ArchRBrowser()} or as an \code{ArchRBrowserTrack()}}
 
 \item{verbose}{A boolean value that determines whether standard output should be printed.}
 

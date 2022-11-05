@@ -14,47 +14,54 @@
 
 
 filterCoAccessibility <- function(
-    coAccessibility = NULL, 
+    coAccessibilityLoops = NULL, 
     corCutOff = NULL, 
     perAccess = NULL,
     resolution = NULL
 ){
-  if(is.null(coAccessibility)){
+  coAccessibilityLoops = coAccessibilityLoops$CoAccessibility
+  if(is.null(coAccessibilityLoops)){
     
     return(NULL)
   }
   
   
-  if(is.null(metadata(coAccessibility)$featureSet)){
+  if(is.null(metadata(coAccessibilityLoops)$featureSet)){
     
     return(NULL)
     
   }
   
   if (!is.null(corCutOff)){
-    coAccessibility = coAccessibility[coAccessibility$correlation >= corCutOff,,drop=FALSE]
+    coAccessibilityLoops = coAccessibilityLoops[coAccessibilityLoops$CoAccessibility$correlation >= corCutOff,,drop=FALSE]
   }
   if (!is.null(perAccess)){
-    coAccessibility = coAccessibility[coAccessibility$PercAccess1 >= perAccess & coAccessibility$PercAccess2 >= perAccess,,drop=FALSE]
+    coAccessibilityLoops = coAccessibilityLoops[coAccessibilityLoops$CoAccessibility$PercAccessMean >= perAccess,,drop=FALSE]
   }
   if (!is.null(resolution)){
-    peakSummits <- resize(metadata(coAccessibility)$featureSet, 1, "center")
+    peakSummits <- resize(metadata(coAccessibilityLoops)$featureSet, 1, "center")
     if(!is.null(resolution)){
       summitTiles <- floor(start(peakSummits) / resolution) * resolution + floor(resolution / 2)
     }else{
       summitTiles <- start(peakSummits)
     }
     loops <- ArchR:::.constructGR(
-      seqnames = seqnames(peakSummits[coAccessibility[,1]]),
-      start = summitTiles[coAccessibility[,1]],
-      end = summitTiles[coAccessibility[,2]]
+      seqnames = seqnames(peakSummits[coAccessibilityLoops@elementMetadata[,1]]),
+      start = summitTiles[coAccessibilityLoops@elementMetadata[,1]],
+      end = summitTiles[coAccessibilityLoops@elementMetadata[,2]]
     )
     
-    coAccessibility$Loops = loops
-    coAccessibility = coAccessibility[order(coAccessibility$correlation, decreasing=TRUE),]
-    coAccessibility = coAccessibility[!duplicated(coAccessibility$Loops),]
-    coAccessibility = coAccessibility[coAccessibility$Loops@ranges@width > 0,]
+    mcols(loops) = mcols(coAccessibilityLoops)
+    loops <- loops[order(mcols(loops)$correlation, decreasing=TRUE)]
+    loops <- unique(loops)
+    loops <- loops[width(loops) > 0]
+    loops <- sort(sortSeqlevels(loops))
+    
+    loops <- SimpleList(CoAccessibility = loops)
+    metadata(loops) = metadata(coAccessibilityLoops)
+    return(loops)
   }
-  return(coAccessibility)
   
+  loops <- SimpleList(CoAccessibility = coAccessibilityLoops)
+  return(loops)
 }

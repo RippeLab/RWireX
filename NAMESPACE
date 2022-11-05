@@ -2,6 +2,7 @@
 
 export(.addMetadataForAggregates)
 export(.checkInputParameters)
+export(.checkNumAggregatesAndCellsPerAggregate)
 export(.createGroupMatrix)
 export(.createLoopsSameChromosome)
 export(.createPairwiseThingsToTest)

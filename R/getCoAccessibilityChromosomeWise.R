@@ -30,6 +30,8 @@
 #' @param threads The number of threads to be used for parallel computing.
 #' @param numPermutations The number of permutations for computing a distant group of random cells.
 #' Increasing this number will not necessarily lead to a more distant group of cells.
+#' @param returnLoops A boolean indicating to return the co-accessibility signal as a `GRanges` "loops" object designed for use with
+#' the `ArchRBrowser()` or as an `ArchRBrowserTrack()`
 #' @param verbose A boolean value that determines whether standard output should be printed.
 #' @param logFile The path to a file to be used for logging ArchR output.
 #' @import parallel
@@ -52,6 +54,7 @@ getCoAccessibilityChromosomeWise <- function (
     seed = 1, 
     threads = getArchRThreads(), 
     numPermutations = 1000,
+    returnLoops = FALSE,
     verbose = TRUE, 
     logFile = createLogFile("getCoAccessibilityChromosomeWise")
 ){
@@ -64,15 +67,15 @@ getCoAccessibilityChromosomeWise <- function (
   
   set.seed(seed)
   
-  #Change numAggregates for single cell
-  if (AggregationMethod == "single_cell_resolution"){
-    numCellsPerAggregate <- 1
-    if (is.null(cellsToUse)) {
-      numAggregates <- nrow(ArchRProj@cellColData)
-    } else {
-      numAggregates <- length(cellsToUse)
-    }
+  if (is.null(cellsToUse)) {
+    cells_number <- nrow(ArchRProj@cellColData)
+  } else {
+    cells_number <- length(cellsToUse)
   }
+   
+  checkedParams = .checkNumAggregatesAndCellsPerAggregate(AggregationMethod, numAggregates, numCellsPerAggregate, cells_number)
+  numAggregates = checkedParams[[1]]
+  numCellsPerAggregate = checkedParams[[2]]
   
   #This set can also can be constructed from tile matrix.
   featureSet <- .getSet(ArchRProj, useMatrix)
@@ -146,14 +149,13 @@ getCoAccessibilityChromosomeWise <- function (
     
     pairwiseDF$PercAccess1 <- percAccessUnits[pairwiseDF$idx1]
     pairwiseDF$PercAccess2 <- percAccessUnits[pairwiseDF$idx2]
+    pairwiseDF$PercAccessMean <- rowMeans(cbind(pairwiseDF$PercAccess1, pairwiseDF$PercAccess2))
     
     ArchR:::.logThis(groupMat, paste0("SubsetGroupMat-", x), logFile = logFile)
     ArchR:::.logThis(pairwiseDF, paste0("SubsetCoA-", x), logFile = logFile)
     o = rbind(o, pairwiseDF)
   }
   
-  o$idx1 <- NULL
-  o$idx2 <- NULL
   o <- o[!is.na(o$correlation), ]
   
   o$TStat <- (o$correlation / sqrt((pmax(1-o$correlation^2, 0.00000000000000001, na.rm = TRUE))/(length(knnObj)-2))) #T-statistic P-value
@@ -168,7 +170,9 @@ getCoAccessibilityChromosomeWise <- function (
   o@metadata$SettingsCoAccessibility <- list(reducedDims = reducedDims, dimsToUse = dimsToUse, scaleDims = scaleDims, corCutOff = corCutOff, cellsToUse = cellsToUse,
                                                               AggregationMethod = AggregationMethod, numCellsPerAggregate = numCellsPerAggregate, numAggregates = numAggregates, useMatrix = useMatrix,
                                                               overlapCutoff = overlapCutoff, scaleTo = scaleTo, log2Norm = log2Norm)
-  o <- .createLoopsSameChromosome(o)
+  if (returnLoops){
+    return(.createLoopsSameChromosome(o))
+  }
   ArchR:::.endLogging(logFile = logFile)
   return(o)
 }
