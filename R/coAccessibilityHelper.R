@@ -157,8 +157,10 @@
         used_cells = unique(c(idx, knnObj %>% as.integer()))
       }
     }
-  } else if (AggregationMethod %in% c("ArchR_default", "single_cell_resolution")){
+  } else if (AggregationMethod %in% c("ArchR_default")){
     knnObj <- ArchR:::.computeKNN(data = reducedDimensions, query = reducedDimensions[idx, ], k = numCellsPerAggregate)
+  } else if (AggregationMethod == "single_cell_resolution"){
+    knnObj <- matrix(idx, ncol = 1)
   }
   return(knnObj)
 }
