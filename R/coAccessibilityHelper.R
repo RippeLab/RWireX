@@ -262,7 +262,6 @@
     featureDF = featureDF, 
     groupList = knnObj, 
     useMatrix = useMatrix,
-    threads = threads, 
     verbose = FALSE
   )
   
