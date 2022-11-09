@@ -152,10 +152,13 @@ getBackgroundCoAccessibility <- function(
         o_cellShuffle[idx, ]$Variability1 <- rowVars_cellShuffle[o_cellShuffle[idx, ]$idx1]
         o_cellShuffle[idx, ]$Variability2 <- rowVars_cellShuffle[o_cellShuffle[idx, ]$idx2]
         
+        
         o_featShuffle[idx, ]$PercAccess1 <- percAccessUnits_featShuffle[o_featShuffle[idx, ]$idx1]
         o_featShuffle[idx, ]$PercAccess2 <- percAccessUnits_featShuffle[o_featShuffle[idx, ]$idx2]
+        o_featShuffle[idx, ]$PercAccessMean <- rowMeans(cbind(o_featShuffle[idx, ]$PercAccess1, o_featShuffle[idx, ]$PercAccess2))
         o_cellShuffle[idx, ]$PercAccess1 <- percAccessUnits_cellShuffle[o_cellShuffle[idx, ]$idx1]
         o_cellShuffle[idx, ]$PercAccess2 <- percAccessUnits_cellShuffle[o_cellShuffle[idx, ]$idx2]
+        o_cellShuffle[idx, ]$PercAccessMean <- rowMeans(cbind(o_cellShuffle[idx, ]$PercAccess1, o_cellShuffle[idx, ]$PercAccess2))
 
         ArchR:::.logThis(groupMat, paste0("SubsetGroupMat-", x), logFile = logFile)
         ArchR:::.logThis(o[idx,], paste0("SubsetCoA-", x), logFile = logFile)

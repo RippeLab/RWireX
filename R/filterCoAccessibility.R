@@ -19,27 +19,41 @@ filterCoAccessibility <- function(
     perAccess = NULL,
     resolution = NULL
 ){
-  coAccessibilityLoops = coAccessibilityLoops$CoAccessibility
+  loops_format = FALSE
   if(is.null(coAccessibilityLoops)){
     
     return(NULL)
   }
-  
-  
-  if(is.null(metadata(coAccessibilityLoops)$featureSet)){
-    
-    return(NULL)
-    
+  if (!class(coAccessibilityLoops)=="DFrame"){
+    #if it's loops
+    loops_format = TRUE
+    coAccessibilityLoops = coAccessibilityLoops$CoAccessibility
+    if(is.null(coAccessibilityLoops@elementMetadata@metadata$featureSet)){
+      
+      return(NULL)
+      
+    }
+    else{
+      featureSet = coAccessibilityLoops@elementMetadata@metadata$featureSet
+    }
+  }
+  else{
+    if(is.null(coA_df@metadata$featureSet)){
+      
+      return(NULL)
+      
+    }
+    featureSet = coA_df@metadata$featureSet
   }
   
   if (!is.null(corCutOff)){
-    coAccessibilityLoops = coAccessibilityLoops[coAccessibilityLoops$CoAccessibility$correlation >= corCutOff,,drop=FALSE]
+    coAccessibilityLoops = coAccessibilityLoops[coAccessibilityLoops$correlation >= corCutOff,,drop=FALSE]
   }
   if (!is.null(perAccess)){
-    coAccessibilityLoops = coAccessibilityLoops[coAccessibilityLoops$CoAccessibility$PercAccessMean >= perAccess,,drop=FALSE]
+    coAccessibilityLoops = coAccessibilityLoops[coAccessibilityLoops$PercAccessMean >= perAccess,,drop=FALSE]
   }
   if (!is.null(resolution)){
-    peakSummits <- resize(metadata(coAccessibilityLoops)$featureSet, 1, "center")
+    peakSummits <- resize(featureSet, 1, "center")
     if(!is.null(resolution)){
       summitTiles <- floor(start(peakSummits) / resolution) * resolution + floor(resolution / 2)
     }else{
@@ -61,7 +75,11 @@ filterCoAccessibility <- function(
     metadata(loops) = metadata(coAccessibilityLoops)
     return(loops)
   }
-  
-  loops <- SimpleList(CoAccessibility = coAccessibilityLoops)
-  return(loops)
+  if (loops_format){
+    loops <- SimpleList(CoAccessibility = coAccessibilityLoops)
+    return(loops)
+  }
+  else{
+    return(coAccessibilityLoops)
+  }
 }

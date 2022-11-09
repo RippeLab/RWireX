@@ -21,7 +21,7 @@ plotCoAccessibilityMap <- function(
     ArchRProj, 
     CoAccessibility, 
     region, 
-    genome = getArchRGenome(), 
+    genome = ArchR::getArchRGenome(), 
     useMatrix = "PeakMatrix",
     main = NULL, 
     onlyPos = FALSE,
@@ -37,6 +37,9 @@ plotCoAccessibilityMap <- function(
     ArchR:::.validInput(input = onlyPos, name = "onlyPos", valid = c("logical"))
     ArchR:::.validInput(input = scaleLim, name = "scaleLim", valid = c("numeric", "null"))
     ArchR:::.validInput(input = rescale, name = "rescale", valid = c("logical"))
+    
+    
+    ArchR:::.requirePackage("plotgardener", installInfo='BiocManager::install("")')
     
     ### Get co-accessible links in region of interest
     dat <- CoAccessibility[findOverlaps(CoAccessibility, region, type = "within") %>% queryHits(.)] %>% as.data.frame(.)

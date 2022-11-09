@@ -8,7 +8,7 @@ plotCoAccessibilityMap(
   ArchRProj,
   CoAccessibility,
   region,
-  genome = getArchRGenome(),
+  genome = ArchR::getArchRGenome(),
   useMatrix = "PeakMatrix",
   main = NULL,
   onlyPos = FALSE,
