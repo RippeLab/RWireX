@@ -63,6 +63,12 @@ getBackgroundCoAccessibility <- function(
     ArchR:::.logThis(mget(names(formals()),sys.frame(sys.nframe())), "getBackgroundCoAccessibility Input-Parameters", logFile = logFile)
 
     set.seed(seed)
+
+    if (is.null(cellsToUse)) {
+      cells_number <- nrow(ArchRProj@cellColData)
+    } else {
+      cells_number <- length(cellsToUse)
+    }
     
     checkedParams = .checkNumAggregatesAndCellsPerAggregate(AggregationMethod, numAggregates, numCellsPerAggregate, cells_number)
     numAggregates = checkedParams[[1]]
