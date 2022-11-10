@@ -71,10 +71,10 @@
   if (useMatrix == "PeakMatrix"){
     set <- getPeakSet(ArchRProj)
   } else if (useMatrix == "TileMatrix"){
-    set <- getMatrixFromProject(ArchRProj, useMatrix = "TileMatrix")@elementMetadata
-    set <- GRanges(seqnames = set$seqnames, 
-                       ranges = IRanges(start = set$start, width = set$start[2]-set$start[1]))
-    set$idx <- set$idx
+    tileSet <- getMatrixFromProject(ArchRProj, useMatrix = "TileMatrix")@elementMetadata
+    set <- GRanges(seqnames = tileSet$seqnames, 
+                       ranges = IRanges(start = tileSet$start, width = tileSet$start[2]-tileSet$start[1]))
+    set$idx <- tileSet$idx
     set$id <- 1:length(set)
   }
   else{

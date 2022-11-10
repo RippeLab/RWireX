@@ -9,13 +9,13 @@ RWireX provides
 
 ## Installation
 
-Install required packages:
-BiocManager::install("plotgardener") # only needed for plotCoAccessibilityMap functionality
-devtools::install_github("GreenleafLab/ArchR", ref="dev", repos = BiocManager::repositories())
-
-Create and save your personal token for installation at https://github.com/settings/tokens 
-personal_token = ""
-devtools::install_github("https://github.com/RippeLab/RWireX", auth_token = personal_token)
+Install required packages: <br />
+BiocManager::install("plotgardener") # only needed for plotCoAccessibilityMap functionality <br />
+devtools::install_github("GreenleafLab/ArchR", ref="dev", repos = BiocManager::repositories()) <br />
+<br />
+Create and save your personal token for installation at https://github.com/settings/tokens <br />
+personal_token = "" <br />
+devtools::install_github("https://github.com/RippeLab/RWireX", auth_token = personal_token) <br />
 
 
 ## Functions
