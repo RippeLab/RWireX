@@ -1,8 +1,22 @@
 # RWireX
-RWireX is an extension to the ArchR software package. 
-It performs co-accessibility analysis of scATAC-seq data acquired by droplet-based single cell sequencing. 
+RWireX is a R software package and contains various functions to analyze co-accessibility in scATAC-seq data acquired by plate- or droplet-based single cell sequencing. It is implemented as an extension to the ArchR software package building on its existing funcitonalities. 
 
-RWireX employs a local background model, computes single-cell link activity scores, and provides co-accessibility maps of large genomic regions to identify interacting loci without pre-selecting specific viewpoints.
+RWireX provides 
+- separated workflows to compute cis and trans co-accessibility, 
+- employs a local background model for co-accessibility link evaluation, 
+- computes single-cell link activity scores that enable correlation to gene expression output, 
+- and provides co-accessibility maps of large genomic regions to identify interacting loci without pre-selecting specific viewpoints.
+
+## Installation
+
+Install required packages:
+BiocManager::install("plotgardener") # only needed for plotCoAccessibilityMap functionality
+devtools::install_github("GreenleafLab/ArchR", ref="dev", repos = BiocManager::repositories())
+
+Create and save your personal token for installation at https://github.com/settings/tokens 
+personal_token = ""
+devtools::install_github("https://github.com/RippeLab/RWireX", auth_token = personal_token)
+
 
 ## Functions
 
