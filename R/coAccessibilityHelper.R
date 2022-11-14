@@ -151,9 +151,9 @@
       idx_closest_cells = match(names, rownames(reducedDimensions))
       neighbours = idx_closest_cells[idx_closest_cells %notin% used_cells]
       if  (length(neighbours)>=numCellsPerAggregate){
-        seed_closest_cells = neighbours[1:numCellsPerAggregate]
+        seed_closest_cells = neighbours[1:numCellsPerAggregate-1]
         
-        knnObj <- rbind(knnObj, c(seed_closest_cells))
+        knnObj <- rbind(knnObj, c(idx[i], seed_closest_cells))
         used_cells = unique(c(idx, knnObj %>% as.integer()))
       }
     }

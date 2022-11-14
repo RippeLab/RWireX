@@ -357,12 +357,12 @@ plotBrowserTrack <- function(
     rx <- (end(lp)-start(lp))/2
     rscale <- r * apply(data.frame(lp$PercAccess1, lp$PercAccess2), 1, mean)
     cx <- start(lp) + rx
-    if(is.null(mcols(lp)$value)){
-      mcols(lp)$value <- 1
+    if(is.null(mcols(lp)$correlation)){
+      mcols(lp)$correlation <- 1
     }
     df <- lapply(seq_along(cx), function(z){
       xz <- rx[z]*cos(angles)+cx[z]
-      dfz <- DataFrame(x=xz, y=rscale[z]*sin(angles), id=Rle(paste0("l",z)), value = mcols(lp)$value[z])
+      dfz <- DataFrame(x=xz, y=rscale[z]*sin(angles), id=Rle(paste0("l",z)), correlation = mcols(lp)$correlation[z])
     }) %>% Reduce("rbind",.)
     return(df)
   }
@@ -389,13 +389,13 @@ plotBrowserTrack <- function(
     ArchR:::.logThis(loopO, "loopO", logFile = logFile)
     
     if (is.null(coaccess_lim)){
-        valueMin <- min(loopO$value)
-        valueMax <- max(loopO$value)
+        correlationMin <- min(loopO$correlation)
+        correlationMax <- max(loopO$correlation)
     } else {
-        valueMin <- min(coaccess_lim)
-        valueMax <- max(coaccess_lim)
+        correlationMin <- min(coaccess_lim)
+        correlationMax <- max(coaccess_lim)
     }
-    valueMax_PercAccess <- min(loopO$y)
+    correlationMax_PercAccess <- min(loopO$y)
                                       
                                       
     testDim <- tryCatch({
@@ -418,13 +418,13 @@ plotBrowserTrack <- function(
         pal <- colorRampPalette(c("#E6E7E8","#3A97FF","#8816A7","black"))(100)
       }
 
-      p <- ggplot(data = data.frame(loopO), aes(x = x, y = y, group = id, color = value)) +
+      p <- ggplot(data = data.frame(loopO), aes(x = x, y = y, group = id, color = correlation)) +
         geom_line() +
         facet_grid(name ~ .) +
         ylab("Percent accessible cells/aggregates") + 
-        coord_cartesian(ylim = c(valueMax_PercAccess,0)) +
+        coord_cartesian(ylim = c(correlationMax_PercAccess,0)) +
         scale_x_continuous(limits = c(start(region), end(region)), expand = c(0,0)) +
-        scale_color_gradientn(colors = pal, limits = c(valueMin, valueMax)) +
+        scale_color_gradientn(colors = pal, limits = c(correlationMin, correlationMax)) +
         theme_ArchR(baseSize = baseSize, baseLineSize = borderWidth, baseRectSize = borderWidth, legendPosition = "right") +
         theme(strip.text.y = element_text(size = facetbaseSize, angle = 0), strip.background = element_blank(),
           legend.box.background = element_rect(color = NA)) +

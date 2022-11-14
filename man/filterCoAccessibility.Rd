@@ -7,12 +7,16 @@
 filterCoAccessibility(
   coAccessibilityLoops = NULL,
   corCutOff = NULL,
+  onlyPositiveCorrelation = TRUE,
   perAccess = NULL,
   resolution = NULL
 )
 }
 \arguments{
 \item{corCutOff}{A numeric describing the minimum numeric peak-to-peak correlation to return.}
+
+\item{onlyPositiveCorrelation}{A boolean that tells to keep only positive correlation above the specified cutoff.
+If set to false, then all correlation bigger or equal to abs(corCutOff) are returned.}
 
 \item{perAccess}{A numeric describing the minimum percent of accessible cells in both peaks in each pair.}
 
