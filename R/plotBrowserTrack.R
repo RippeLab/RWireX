@@ -385,7 +385,9 @@ plotBrowserTrack <- function(
        }else{
          NULL
        }
-    }) %>% Reduce("rbind",.)
+    })
+    loopO <- loopO[!vapply(loopO, is.null, logical(1))]
+    loopO <- loopO %>% Reduce("rbind",.)
     ArchR:::.logThis(loopO, "loopO", logFile = logFile)
     
     if (is.null(coaccess_lim)){
