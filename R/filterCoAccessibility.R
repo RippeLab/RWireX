@@ -7,7 +7,7 @@
 #' 
 #' @param coAccessibility A coAccessibility DataFrame created by one of the coAccessibility functions.
 #' @param corCutOff A numeric describing the minimum numeric peak-to-peak correlation to return.
-#' @param onlyPositiveCorrelation A boolean that tells to keep only positive correlation above the specified cutoff. 
+#' @param onlyPos A boolean that tells to keep only positive correlation above the specified cutoff. 
 #' If set to false, then all correlation bigger or equal to abs(corCutOff) are returned.
 #' @param perAccess A numeric describing the minimum percent of accessible cells in both peaks in each pair.
 #' @param resolution A numeric describing the bp resolution to use when returning loops. This helps with overplotting of correlated regions.
@@ -18,7 +18,7 @@
 filterCoAccessibility <- function(
     coAccessibilityLoops = NULL, 
     corCutOff = NULL, 
-    onlyPositiveCorrelation = TRUE,
+    onlyPos = TRUE,
     perAccess = NULL,
     resolution = NULL
 ){
@@ -50,7 +50,7 @@ filterCoAccessibility <- function(
   }
   
   if (!is.null(corCutOff)){
-    if (onlyPositiveCorrelation){
+    if (onlyPos){
       coAccessibilityLoops = coAccessibilityLoops[coAccessibilityLoops$correlation >= corCutOff,,drop=FALSE]
     }
     else {
