@@ -112,7 +112,7 @@ getCoAccessibility <- function (
     ### Add pseudo-count to gS for non-accessible cell aggregates in all regions of interest
     gS <- gS + 1
     
-    o <- .addMetadataForAggregates(ArchRProj, o, featureSet, knnObj, useMatrix, gS, log2Norm, scaleTo)
+    #o <- .addMetadataForAggregates(ArchRProj, o, featureSet, knnObj, useMatrix, gS, log2Norm, scaleTo)
                         
     for (x in seq_along(chri)) {
         

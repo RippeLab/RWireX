@@ -274,6 +274,48 @@
   return(groupMat)
 }
 
+#' Get and normalize Group Matrix.
+#' 
+#' @description The function extracts the matrix for the given features and scales/normalizes it. 
+#' @keywords internal
+#' @export
+.createCustomGroupMatrix <- function(ArchRProj, customMatrix, peakSet, knnObj, useMatrix, gS, log2Norm, chr, scaleTo){
+  #Features
+  featureDF_index = BiocGenerics::which(seqnames(peakSet) == chr)
+  #Group Matrix
+  customMatrixFiltered = customMatrix[featureDF_index, ]
+  customMatrixFiltered = as.matrix(customMatrixFiltered)
+
+  mat <- matrix(0, nrow = length(featureDF_index), ncol = length(knnObj))
+  colnames(mat) <- names(knnObj)
+  for(z in seq_along(knnObj)){
+    cellsGroupz <- knnObj[[z]]
+    idx <- BiocGenerics::which(colnames(customMatrixFiltered) %in% cellsGroupz)
+    mat[,z] <- Matrix::rowSums(as.matrix(customMatrixFiltered[,idx,drop=FALSE]))
+      
+  }
+  #Scale
+  groupMat <- t(t(mat)/gS) * scaleTo
+  
+  if (log2Norm) {
+    groupMat <- log2(groupMat + 1)
+  }
+  return(groupMat)
+  
+    
+}
+
+#' Get ColSums for custom matrix.
+#' 
+#' @description The function substitutes .getColSums from ArchR. 
+#' @keywords internal
+#' @export
+.getColSumsCustomMatrix <- function(customMatrix){
+  cS = colSums2(customMatrix)
+  names(cS) = colnames(customMatrix)
+  return(cS)
+}
+
 #' Create Loops between Peaks.
 #' 
 #' @description The function creates loops between pairs of peaks from peak indices.
