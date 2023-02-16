@@ -212,6 +212,8 @@
   o$PercAccess1 <- 0.000
   o$PercAccess2 <- 0.000
   o$PercAccessMean <- 0.000
+  o$peaksetLookUpIndex1 <- o[, 1]
+  o$peaksetLookUpIndex2 <- o[, 2]
   return(o)
 }
   

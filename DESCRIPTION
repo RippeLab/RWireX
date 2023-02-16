@@ -30,6 +30,7 @@ Collate:
     'coAccessibilityHelper.R'
     'getCoAccessibility.R'
     'getCoAccessibilityOnCustomMatrix.R'
+    'getLinkActivityMatrix.R'
     'getBackgroundCoAccessibility.R'
     'getCoAccessibilityChromosomeWise.R'
     'filterCoAccessibility.R'
