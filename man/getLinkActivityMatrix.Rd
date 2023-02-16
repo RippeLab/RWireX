@@ -4,12 +4,30 @@
 \alias{getLinkActivityMatrix}
 \title{Get Link Activity Matix}
 \usage{
-getLinkActivityMatrix(ArchRProj, coAccessibility)
+getLinkActivityMatrix(
+  ArchRProj,
+  coAccessibility,
+  useMatrix = "PeakMatrix",
+  peakSubset = NULL,
+  rangeForSubset = NULL,
+  binarize = TRUE,
+  correlationCoefficient = FALSE
+)
 }
 \arguments{
 \item{ArchRProj}{An \code{ArchRProject} object.}
 
 \item{coAccessibility}{The co-accessibility data produced by RWireX method getCoAccessibility.}
+
+\item{useMatrix}{Same matrix type that was used for the accessibility.}
+
+\item{peakSubset}{If specified, then the matrix is subsetted by the links with the first peak in the peakSubset.}
+
+\item{rangeForSubset}{If specified, then the matrix is subsetted by the links where the first peak is in this range.}
+
+\item{binarize}{if matrix needs to be binarized. Have to be the same as the matrix used for coAccessibility calculation.}
+
+\item{correlationCoefficient}{multiply links by correlation.}
 }
 \description{
 Get Link Activity Matix
