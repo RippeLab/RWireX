@@ -21,6 +21,7 @@
                     numCellsPerAggregate = c("integer"),
                     numAggregates = c("integer"),
                     useMatrix = c("character"),
+                    binaryMatrix = c("boolean"),
                     overlapCutoff = c("numeric"),
                     maxDist = c("integer"),
                     scaleTo = c("numeric"),
@@ -67,11 +68,11 @@
 #' @description The function returns feature set based on the specified matrix. 
 #' @keywords internal
 #' @export
-.getSet <- function(ArchRProj, useMatrix){
+.getSet <- function(ArchRProj, useMatrix, binaryMatrix){
   if (useMatrix == "PeakMatrix"){
     set <- getPeakSet(ArchRProj)
   } else if (useMatrix == "TileMatrix"){
-    tileSet <- getMatrixFromProject(ArchRProj, useMatrix = "TileMatrix")@elementMetadata
+    tileSet <- getMatrixFromProject(ArchRProj, useMatrix = "TileMatrix", binarize = binaryMatrix)@elementMetadata
     set <- GRanges(seqnames = tileSet$seqnames, 
                        ranges = IRanges(start = tileSet$start, width = tileSet$start[2]-tileSet$start[1]))
     set$idx <- tileSet$idx

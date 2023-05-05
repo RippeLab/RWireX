@@ -15,6 +15,7 @@ getCoAccessibility(
   numCellsPerAggregate = 100,
   numAggregates = 500,
   useMatrix = "PeakMatrix",
+  binaryMatrix = FALSE,
   overlapCutoff = 0.8,
   maxDist = 1e+05,
   scaleTo = 10^4,

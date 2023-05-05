@@ -48,6 +48,7 @@ getCoAccessibilityChromosomeWise <- function (
     numCellsPerAggregate = 100, 
     numAggregates = 500,
     useMatrix = "PeakMatrix",
+    binaryMatrix = FALSE,
     overlapCutoff = 0.8, 
     scaleTo = 10^4, 
     log2Norm = TRUE, 
@@ -78,7 +79,7 @@ getCoAccessibilityChromosomeWise <- function (
   numCellsPerAggregate = checkedParams[[2]]
   
   #This set can also can be constructed from tile matrix.
-  featureSet <- .getSet(ArchRProj, useMatrix)
+  featureSet <- .getSet(ArchRProj, useMatrix, binaryMatrix)
   rD <- .getFilteredReducedDimensions(ArchRProj, reducedDims, corCutOff, dimsToUse, cellsToUse)
   idx <- .selectCellSeedsForAggregation(ArchRProj, rD, AggregationMethod, numPermutations, numCellsPerAggregate, numAggregates, cellsToUse)
   

@@ -4,7 +4,7 @@
 \alias{.getSet}
 \title{Feature Set getter}
 \usage{
-.getSet(ArchRProj, useMatrix)
+.getSet(ArchRProj, useMatrix, binaryMatrix)
 }
 \description{
 The function returns feature set based on the specified matrix.
