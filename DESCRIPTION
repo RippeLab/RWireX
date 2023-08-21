@@ -1,6 +1,6 @@
 Package: RWireX
 Title: Co-accessibility analysis of scATAC-seq data to identify stochastically occuring co-accessible links
-Version: 0.2.06
+Version: 0.2.07
 Authors@R: 
     c(person(given = "Isabelle",
            family = "Seufert",
@@ -36,3 +36,4 @@ Collate:
     'filterCoAccessibility.R'
     'plotBrowserTrack.R'
     'plotCoAccessibilityMap.R'
+    'plotFeatureViolin.R'

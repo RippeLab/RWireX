@@ -24,7 +24,6 @@
                     binaryMatrix = c("boolean"),
                     overlapCutoff = c("numeric"),
                     maxDist = c("integer"),
-                    chromosomewise = c("boolean"),
                     scaleTo = c("numeric"),
                     log2Norm = c("boolean"),
                     seed = c("integer"),
