@@ -7,6 +7,7 @@
 #' you use PeakMatrix, gene name if you use GeneScoreMatrix, or one of the data columns names if you use cellColData.
 #' @param useMatrix Type of Matrix to plot data from
 #' @param binarize If you plot values from a binary matrix. MUST be specified if the matrix is binarized. 
+#' @param matrix You can provide matrix directly for a faster run.
 #' @param groupBy Which groups should be displayed in the plot.
 #' @param normBy Specify if you want the values in the matrix normalized.
 #' @param orderedSamples You can specify the order of the group in the plot here in a string vector.
@@ -37,7 +38,7 @@ plotFeatureViolin <- function(ArchRProj,
     if (useMatrix == "cellColData"){
       matrix <- ArchRProj@cellColData
     } else {
-      matrix = getMatrixFromProject(ArchRProj, useMatrix = useMatrix, binarize = binarize)
+      matrix = ArchR:::getMatrixFromProject(ArchRProj, useMatrix = useMatrix, binarize = binarize)
     }
   }
   if (useMatrix == "PeakMatrix"){
@@ -56,10 +57,10 @@ plotFeatureViolin <- function(ArchRProj,
   if (is.null(normBy)){
     final_values <- as.matrix(values)
   } else {
-    norm_factors <- getCellColData(ArchRProj, normBy, drop=FALSE)
+    norm_factors <- ArchR:::getCellColData(ArchRProj, normBy, drop=FALSE)
     norm_factors[,1] <- median(norm_factors[,1]) / norm_factors[,1]
     
-    mColSums = colSums(matrix@assays@data[[1]])
+    mColSums = Matrix::colSums(matrix@assays@data[[1]])
     scaleTo = 10^4
     norm_factors[,1] <- norm_factors[,1] * (scaleTo / median(norm_factors[names(mColSums), 1] * mColSums))
     final_values =  values * as.matrix(norm_factors)
@@ -68,7 +69,7 @@ plotFeatureViolin <- function(ArchRProj,
   samples = getSampleNames(ArchRProj)
   
   if (useMatrix == "cellColData"){
-    df = data.frame(Group=getCellColData(ArchRProj, groupBy, drop=FALSE)[,1],
+    df = data.frame(Group=ArchR:::getCellColData(ArchRProj, groupBy, drop=FALSE)[,1],
                     Value= final_values[,1])
     df$Group <- as.factor(df$Group)
     df$Value <- as.numeric(df$Value)
