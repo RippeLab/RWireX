@@ -2,7 +2,6 @@
 #' 
 #' This function returns co-accessibility map of a specified genomic region.
 #'
-#' @param ArchRProj An `ArchRProject` object.
 #' @param CoAccessibility A GRanges object with co-accessible links from getCoAccessibility function.
 #' @param region GRanges object of length 1 with region of interest for which co-accessibility should be visualized.
 #' @param genome Genome and gene annotation to use.
@@ -18,63 +17,60 @@
 
 
 plotCoAccessibilityMap <- function(
-    ArchRProj, 
     CoAccessibility, 
-    region, 
+    region,
     genome = ArchR::getArchRGenome(), 
-    useMatrix = "PeakMatrix",
     main = NULL, 
     onlyPos = FALSE,
     scaleLim = NULL,
-    rescale = FALSE){
+    rescale = FALSE,
+    annotation = NULL,
+    annotation_size = 0.5){
     
-    ArchR:::.validInput(input = ArchRProj, name = "ArchRProj", valid = c("ArchRProj"))
-    ArchR:::.validInput(input = CoAccessibility, name = "CoAccessibility", valid = c("GRanges"))
+    ArchR:::.validInput(input = CoAccessibility, name = "CoAccessibility", valid = c("list"))
     ArchR:::.validInput(input = region, name = "region", valid = c("GRanges"))
-    ArchR:::.validInput(input = genome, name = "genome", valid = c("character"))
-    ArchR:::.validInput(input = useMatrix, name = "useMatrix", valid = c("character"))
+    ArchR:::.validInput(input = genome, name = "genome", valid = c("character"))    
     ArchR:::.validInput(input = main, name = "main", valid = c("character", "null"))
     ArchR:::.validInput(input = onlyPos, name = "onlyPos", valid = c("logical"))
     ArchR:::.validInput(input = scaleLim, name = "scaleLim", valid = c("numeric", "null"))
     ArchR:::.validInput(input = rescale, name = "rescale", valid = c("logical"))
+    ArchR:::.validInput(input = annotation, name = "annotation", valid = c("list", "null"))
     
     
     ArchR:::.requirePackage("plotgardener", installInfo='BiocManager::install("")')
     
     ### Get co-accessible links in region of interest
-    dat <- CoAccessibility[findOverlaps(CoAccessibility, region, type = "within") %>% queryHits(.)] %>% as.data.frame(.)
+    dat <- CoAccessibility$CoAccessibility[findOverlaps(CoAccessibility$CoAccessibility, region, type = "within") %>% queryHits(.)] %>% as.data.frame(.)
     dat <- dat[, c("start", "end", "correlation")]
 
-    ### Get Peak Set
-    if (useMatrix == "PeakMatrix"){
-        peaks <- getPeakSet(ArchRProj)
-        seqlevels(peaks, pruning.mode="tidy") <- seqlevels(region)
-    } else if (useMatrix == "TileMatrix"){
-        tileSet <- getMatrixFromProject(ArchRProj, useMatrix = "TileMatrix")@elementMetadata
-        peaks <- GRanges(seqnames = tileSet$seqnames, 
-                           ranges = IRanges(start = tileSet$start, width = tileSet$start[2]-tileSet$start[1]))
-        peaks$idx <- tileSet$idx
-        peaks$id <- 1:length(peaks)
-        seqlevels(peaks, pruning.mode="tidy") <- seqlevels(region)
+    ### Get features
+    features <- CoAccessibility@metadata$featureSet
+    seqlevels(features, pruning.mode="tidy") <- seqlevels(region)
+    features$id <- 1:length(features)
+    
+    ### Determine peak or tile features
+    feat_start <- features@ranges@start[1:100] + features@ranges@width[1:100]
+    featPlus1_end <- features@ranges@start[2:101]
+    if (!all(feat_start == featPlus1_end)){
+        featureType <- "peaks"
+    } else if (all(feat_start == featPlus1_end)){
+        featureType <- "tiles"
         if (rescale){
-          print("NOT allowed to RESCALE tile matrix. Setting RESCALE to FALSE!")
-          rescale = FALSE
+            print("NOT allowed to RESCALE tile matrix. Setting RESCALE to FALSE!")
+            rescale = FALSE
         }
     }
-    else{
-      stop("This matrix is not supported yet. Please use Peak or Tile Matrix instead.")
-    }
     
-    resolution <- peaks@ranges@width %>% unique(.)
+    resolution <- features@ranges@width %>% unique(.)
     if (length(resolution) != 1){
-      stop("Peaks must be the same width. Consider using another algorithm or resize your peaks.")
+      stop("Genomic features must be the same width. Consider using another algorithm or resize your features.")
     }
     ### Get genome
     genome <- tolower(genome)
     
     ### If requested, rescale peaks to continous scale
     if (rescale){
-        origTiles <- peaks[findOverlaps(region, peaks) %>% subjectHits(.)] %>% ranges(.) %>% as.data.frame(.)
+        origTiles <- features[findOverlaps(region, features) %>% subjectHits(.)] %>% ranges(.) %>% as.data.frame(.)
         colnames(origTiles) <- c("PeakStart", "PeakEnd", "PeakWidth", "PeakOrigin")
         origTiles$PeakID <- rowMeans(origTiles[,c("PeakStart", "PeakEnd")])
         origTiles <- origTiles[order(origTiles$PeakID, decreasing = FALSE),]
@@ -100,13 +96,21 @@ plotCoAccessibilityMap <- function(
         main <- as.character(region)
     }
     
+    ## Get annotation
+    for (i in 1:length(annotation)){
+        seqlevels(annotation[[i]], pruning.mode="tidy") <- seqlevels(region)
+    }
+    
     ## Create a plotgardener page
-    if (useMatrix == "PeakMatrix" & !rescale){
-        height <- 15
-    } else if (useMatrix == "TileMatrix"){
+    if (featureType == "peaks" & !rescale){
+        height <- 16
+    } else if (featureType == "tiles"){
         height <- 13
-    } else if (useMatrix == "PeakMatrix" & rescale){
+    } else if (featureType == "peaks" & rescale){
         height <- 10
+    }
+    if (!is.null(annotation)){
+        height <- height + annotation_size * length(annotation)
     }
     pageCreate(width = 21, height = height, default.units = "inches", showGuides = FALSE)
 
@@ -116,7 +120,7 @@ plotCoAccessibilityMap <- function(
                           x = 0.5, width = 20, default.units = "inches")
     ## Main title
     plotText(label = main, fontcolor = "black", fontsize = 22,
-                x = 1, y = 1, just = c("left","top"), default.units = "inches")
+                x = 1, y = 2, just = c("left","top"), default.units = "inches")
 
     ## Plot Hi-C triangle
     correlation_range <- c(-max(max(dat$correlation), abs(min(dat$correlation))), max(max(dat$correlation), abs(min(dat$correlation))))
@@ -142,30 +146,46 @@ plotCoAccessibilityMap <- function(
 
 
     ## Plot genes
-    if (useMatrix == "PeakMatrix" & !rescale){
-        y_genes <- 12
-        y_label <- 13.5
-    } else if (useMatrix == "TileMatrix"){
-        y_genes <- 10
-        y_label <- 11.5
+    if (featureType == "peaks"){
+        y_genes <- 12.5 + length(annotation) * annotation_size
+        y_label <- 14 + length(annotation) * annotation_size
+    } else if (featureType == "tiles"){
+        y_genes <- 10.5 + length(annotation) * annotation_size
+        y_label <- 12 + length(annotation) * annotation_size
     }
     
     if (!rescale){
-      plotGenes(params = params_obj, stroke = 1, fontsize = 15, fontcolor = c("red", "dodgerblue2"), fill = c("red", "dodgerblue2"), bg = "white",
+      plotGenes(params = params_obj, stroke = 1, fontsize = 15, fontcolor = c("red", "dodgerblue2"), fill = c("red", "dodgerblue2"), bg = NA,
                 strandLabels = FALSE, y = y_genes, height = 3)
       plotText(label = "Genes", fontcolor = "black", fontsize = 18, rot = 90,
                x = 0.1, y = y_label, just = c("top","center"), default.units = "inches")
     }
    
     ## Plot peaks
-    if (useMatrix == "PeakMatrix" & rescale){
+    if (featureType == "peaks" & rescale){
         plotText(label = "Rescaled peaks", fontcolor = "black", fontsize = 18,
                 x = 1, y = 2, just = c("left","top"), default.units = "inches")
-    } else if (useMatrix == "PeakMatrix"  & !rescale){
-        plotRanges(data = peaks, params = params_obj, y = 10, height = 2, bg = "white", fill = "grey")
+    } else if (featureType == "peaks"  & !rescale){
+        plotRanges(data = features, params = params_obj, y = 10, height = 2, bg = NA, fill = "grey")
         plotText(label = "Peaks", fontcolor = "black", fontsize = 18, rot = 90,
                 x = 0.1, y = 11.5, just = c("top","left"), default.units = "inches")
     }  
+    
+    ## Add annotation
+    if (featureType == "peaks" & !rescale){
+        y_annotation <- 12.5
+    } else if (featureType == "tiles"){
+        y_annotation <- 10.5
+    }
+    
+    if (!is.null(annotation) & !rescale){
+        for (i in 1:length(annotation)){
+            plotRanges(data = annotation[[i]], params = params_obj, y = y_annotation + (i-1) * annotation_size, height = annotation_size, 
+                       bg = NA, fill = ArchR::ArchRPalettes$stallion[i], just = c("left", "center"))
+            plotText(label = names(annotation)[i], fontcolor = "black", fontsize = 18, rot = 0,
+                     x = 0.1, y = y_annotation + (i-1) * annotation_size, just = c("top","left"), default.units = "inches")
+        }
+    }
 
     ## Annotate genome label
     plotGenomeLabel(params = params_obj, 
