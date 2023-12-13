@@ -1,12 +1,12 @@
 Package: RWireX
-Title: Co-accessibility analysis of scATAC-seq data to identify stochastically occuring co-accessible links
-Version: 0.2.07
+Title: Co-accessibility analysis of scATAC-seq data to infer chromatin co-accessibility
+Version: 0.2.08
 Authors@R: 
     c(person(given = "Isabelle",
            family = "Seufert",
            role = c("aut", "cre"),
            email = "i.seufert@dkfz-heidelberg.de",
-           comment = c(ORCID = "YOUR-ORCID-ID")),
+           comment = c(ORCID = "0000-0001-9811-3836")),
     person(given = "Anastasiya",
            family = "Vladimirova"))
 Maintainer: Isabelle Seufert <i.seufert@dkfz-heidelberg.de>
@@ -18,7 +18,8 @@ Imports:
     parallel,
     ggExtra,
     plotgardener,
-    plyranges
+    plyranges,
+    SpectralTAD
 License: `use_mit_license()`, `use_gpl3_license()` or friends to
     pick a license
 Encoding: UTF-8
@@ -33,6 +34,7 @@ Collate:
     'getLinkActivityMatrix.R'
     'getBackgroundCoAccessibility.R'
     'getCoAccessibilityChromosomeWise.R'
+    'getCoAccessibleDomains.R'
     'filterCoAccessibility.R'
     'plotBrowserTrack.R'
     'plotCoAccessibilityMap.R'
