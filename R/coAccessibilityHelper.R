@@ -32,6 +32,7 @@
                     verbose = c("boolean"),
                     returnLoops = c("boolean"),
                     corCutOff = c("numeric"),
+                    chromosomewise = c("boolean"),
                     logFile = c("character"))
   for(parameter in names(parameterList)){
     if (parameter %notin% names(validInput)){
