@@ -1,6 +1,6 @@
 Package: RWireX
 Title: Co-accessibility analysis of scATAC-seq data to infer chromatin co-accessibility
-Version: 0.2.08
+Version: 0.2.09
 Authors@R: 
     c(person(given = "Isabelle",
            family = "Seufert",
