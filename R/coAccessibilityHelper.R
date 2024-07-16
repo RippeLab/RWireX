@@ -21,6 +21,7 @@
                     numCellsPerAggregate = c("integer"),
                     numAggregates = c("integer"),
                     useMatrix = c("character"),
+                    binaryMatrix = c("boolean"),
                     overlapCutoff = c("numeric"),
                     maxDist = c("integer"),
                     scaleTo = c("numeric"),
@@ -31,6 +32,7 @@
                     verbose = c("boolean"),
                     returnLoops = c("boolean"),
                     corCutOff = c("numeric"),
+                    chromosomewise = c("boolean"),
                     logFile = c("character"))
   for(parameter in names(parameterList)){
     if (parameter %notin% names(validInput)){
@@ -67,11 +69,11 @@
 #' @description The function returns feature set based on the specified matrix. 
 #' @keywords internal
 #' @export
-.getSet <- function(ArchRProj, useMatrix){
+.getSet <- function(ArchRProj, useMatrix, binaryMatrix){
   if (useMatrix == "PeakMatrix"){
     set <- getPeakSet(ArchRProj)
   } else if (useMatrix == "TileMatrix"){
-    tileSet <- getMatrixFromProject(ArchRProj, useMatrix = "TileMatrix")@elementMetadata
+    tileSet <- getMatrixFromProject(ArchRProj, useMatrix = "TileMatrix", binarize = binaryMatrix)@elementMetadata
     set <- GRanges(seqnames = tileSet$seqnames, 
                        ranges = IRanges(start = tileSet$start, width = tileSet$start[2]-tileSet$start[1]))
     set$idx <- tileSet$idx
@@ -212,6 +214,8 @@
   o$PercAccess1 <- 0.000
   o$PercAccess2 <- 0.000
   o$PercAccessMean <- 0.000
+  o$peaksetLookUpIndex1 <- o[, 1]
+  o$peaksetLookUpIndex2 <- o[, 2]
   return(o)
 }
   
@@ -272,6 +276,48 @@
     groupMat <- log2(groupMat + 1)
   }
   return(groupMat)
+}
+
+#' Get and normalize Group Matrix.
+#' 
+#' @description The function extracts the matrix for the given features and scales/normalizes it. 
+#' @keywords internal
+#' @export
+.createCustomGroupMatrix <- function(ArchRProj, customMatrix, peakSet, knnObj, useMatrix, gS, log2Norm, chr, scaleTo){
+  #Features
+  featureDF_index = BiocGenerics::which(seqnames(peakSet) == chr)
+  #Group Matrix
+  customMatrixFiltered = customMatrix[featureDF_index, ]
+  customMatrixFiltered = as.matrix(customMatrixFiltered)
+
+  mat <- matrix(0, nrow = length(featureDF_index), ncol = length(knnObj))
+  colnames(mat) <- names(knnObj)
+  for(z in seq_along(knnObj)){
+    cellsGroupz <- knnObj[[z]]
+    idx <- BiocGenerics::which(colnames(customMatrixFiltered) %in% cellsGroupz)
+    mat[,z] <- Matrix::rowSums(as.matrix(customMatrixFiltered[,idx,drop=FALSE]))
+      
+  }
+  #Scale
+  groupMat <- t(t(mat)/gS) * scaleTo
+  
+  if (log2Norm) {
+    groupMat <- log2(groupMat + 1)
+  }
+  return(groupMat)
+  
+    
+}
+
+#' Get ColSums for custom matrix.
+#' 
+#' @description The function substitutes .getColSums from ArchR. 
+#' @keywords internal
+#' @export
+.getColSumsCustomMatrix <- function(customMatrix){
+  cS = colSums2(customMatrix)
+  names(cS) = colnames(customMatrix)
+  return(cS)
 }
 
 #' Create Loops between Peaks.

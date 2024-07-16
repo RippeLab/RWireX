@@ -44,8 +44,10 @@ getBackgroundCoAccessibility <- function(
     numCellsPerAggregate = 100, 
     numAggregates = 500,
     useMatrix = "PeakMatrix",
+    binaryMatrix = FALSE,
     overlapCutoff = 0.8, 
     maxDist = 100000,
+    chromosomewise=FALSE,
     scaleTo = 10^4,
     log2Norm = TRUE,
     seed = 1, 
@@ -75,7 +77,7 @@ getBackgroundCoAccessibility <- function(
     numCellsPerAggregate = checkedParams[[2]]
 
     #This set can also can be constructed from tile matrix.
-    featureSet <- .getSet(ArchRProj, useMatrix)
+    featureSet <- .getSet(ArchRProj, useMatrix, binaryMatrix)
     rD <- .getFilteredReducedDimensions(ArchRProj, reducedDims, corCutOff, dimsToUse, cellsToUse)
     idx <- .selectCellSeedsForAggregation(ArchRProj, rD, AggregationMethod, numPermutations, numCellsPerAggregate, numAggregates, cellsToUse)
     
@@ -101,8 +103,16 @@ getBackgroundCoAccessibility <- function(
     #Create Ranges
     peakSummits <- resize(featureSet, 1, "center")
     peakWindows <- resize(peakSummits, maxDist, "center")
-
-    o <- .createPairwiseThingsToTest(featureSet, maxDist)
+    
+    if (chromosomewise){
+      columns = c("queryHits","subjectHits","seqnames", "idx1", "idx2", "correlation", "Variability1", "Variability2", "PercAccess1", "PercAccess2") 
+      o <- DataFrame(matrix(nrow = 0, ncol = length(columns)))
+      colnames(o) = columns
+    }
+    else{
+      o <- .createPairwiseThingsToTest(featureSet, maxDist)
+    }
+    
     
     o_featShuffle <- o
     o_cellShuffle <- o
@@ -119,7 +129,20 @@ getBackgroundCoAccessibility <- function(
     for(x in seq_along(chri)){
 
         ArchR:::.logDiffTime(sprintf("Computing Background Co-Accessibility %s (%s of %s)", chri[x], x, length(chri)), t1=tstart, verbose=verbose, logFile=logFile)
-
+        
+        if (chromosomewise){
+          peaks_in_one_chrom_idx = which(seqnames(featureSet) == chri[x])
+          pairwiseComb = combn(peaks_in_one_chrom_idx, 2)
+          pairwiseDF = DataFrame(queryHits=pairwiseComb[1,], subjectHits=pairwiseComb[2,])
+          pairwiseDF$seqnames <- chri[x]
+          pairwiseDF$idx1 <- featureSet$idx[pairwiseComb[1,]]
+          pairwiseDF$idx2 <- featureSet$idx[pairwiseComb[2,]]
+          pairwiseDF$correlation <- -999.999
+          pairwiseDF$Variability1 <- 0.000
+          pairwiseDF$Variability2 <- 0.000
+          o = rbind(o, pairwiseDF)
+        }
+       
         groupMat = .createGroupMatrix(ArchRProj, featureSet, knnObj, useMatrix, gS, log2Norm, chri[x], scaleTo)
         
         ###Shuffle features for background correlations
@@ -128,7 +151,7 @@ getBackgroundCoAccessibility <- function(
 
         #Correlations
         idx <- BiocGenerics::which(o$seqnames==chri[x])
-       
+        
         corVals_featShuffle <- ArchR:::rowCorCpp(idxX = o[idx,]$idx1, idxY = o[idx,]$idx2, X = as.matrix(groupMat_featShuffle), Y = as.matrix(groupMat_featShuffle))
         corVals_cellShuffle <- ArchR:::rowCorCpp(idxX = o[idx,]$idx1, idxY = o[idx,]$idx2, X = as.matrix(groupMat_cellShuffle), Y = as.matrix(groupMat_cellShuffle))
         ArchR:::.logThis(head(corVals_featShuffle), paste0("SubsetCorVals-", x), logFile = logFile)

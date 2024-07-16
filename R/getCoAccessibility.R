@@ -49,6 +49,7 @@ getCoAccessibility <- function (
     numCellsPerAggregate = 100, 
     numAggregates = 500,
     useMatrix = "PeakMatrix",
+    binaryMatrix = FALSE,
     overlapCutoff = 0.8, 
     maxDist = 100000, 
     scaleTo = 10^4, 
@@ -80,7 +81,7 @@ getCoAccessibility <- function (
     numCellsPerAggregate = checkedParams[[2]]
     
     #This set can also can be constructed from tile matrix.
-    featureSet <- .getSet(ArchRProj, useMatrix)
+    featureSet <- .getSet(ArchRProj, useMatrix, binaryMatrix)
     rD <- .getFilteredReducedDimensions(ArchRProj, reducedDims, corCutOff, dimsToUse, cellsToUse)
     idx <- .selectCellSeedsForAggregation(ArchRProj, rD, AggregationMethod, numPermutations, numCellsPerAggregate, numAggregates, cellsToUse)
     
@@ -112,7 +113,7 @@ getCoAccessibility <- function (
     ### Add pseudo-count to gS for non-accessible cell aggregates in all regions of interest
     gS <- gS + 1
     
-    o <- .addMetadataForAggregates(ArchRProj, o, featureSet, knnObj, useMatrix, gS, log2Norm, scaleTo)
+    #o <- .addMetadataForAggregates(ArchRProj, o, featureSet, knnObj, useMatrix, gS, log2Norm, scaleTo)
                         
     for (x in seq_along(chri)) {
         

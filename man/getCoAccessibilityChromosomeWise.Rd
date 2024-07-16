@@ -15,6 +15,7 @@ getCoAccessibilityChromosomeWise(
   numCellsPerAggregate = 100,
   numAggregates = 500,
   useMatrix = "PeakMatrix",
+  binaryMatrix = FALSE,
   overlapCutoff = 0.8,
   scaleTo = 10^4,
   log2Norm = TRUE,
