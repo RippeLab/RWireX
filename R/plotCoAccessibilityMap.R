@@ -20,6 +20,7 @@ plotCoAccessibilityMap <- function(
     CoAccessibility, 
     region,
     genome = ArchR::getArchRGenome(), 
+    features = NULL,
     main = NULL, 
     onlyPos = FALSE,
     scaleLim = NULL,
@@ -30,6 +31,7 @@ plotCoAccessibilityMap <- function(
     ArchR:::.validInput(input = CoAccessibility, name = "CoAccessibility", valid = c("list"))
     ArchR:::.validInput(input = region, name = "region", valid = c("GRanges"))
     ArchR:::.validInput(input = genome, name = "genome", valid = c("character"))    
+    ArchR:::.validInput(input = region, name = "features", valid = c("GRanges"))
     ArchR:::.validInput(input = main, name = "main", valid = c("character", "null"))
     ArchR:::.validInput(input = onlyPos, name = "onlyPos", valid = c("logical"))
     ArchR:::.validInput(input = scaleLim, name = "scaleLim", valid = c("numeric", "null"))
@@ -44,7 +46,9 @@ plotCoAccessibilityMap <- function(
     dat <- dat[, c("start", "end", "correlation")]
 
     ### Get features
-    features <- CoAccessibility@metadata$featureSet
+    if (is.null(features)) {
+        features <- CoAccessibility@metadata$featureSet
+    }
     seqlevels(features, pruning.mode="tidy") <- seqlevels(region)
     features$id <- 1:length(features)
     
@@ -87,7 +91,7 @@ plotCoAccessibilityMap <- function(
         
         resolution <- newTiles$width[1] 
     } else {
-        ### Shift start and end points of co-accessible links by 1/2 peak size to the left (cannot use mid-points as link start)
+        ### Shift start and end points of co-accessibility by 1/2 peak size to the left (cannot use mid-points as link start)
         dat$start <- dat$start - resolution/2
         dat$end <- dat$end - resolution/2
     }
