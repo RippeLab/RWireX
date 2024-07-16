@@ -28,7 +28,7 @@ getLinkActivityMatrix <- function (ArchRProj, coAccessibility, useMatrix="PeakMa
     index_of_subset = which(!is.na(findOverlaps(matr@rowRanges, rangeForSubset, select="first")))
     coAccessibility = coAccessibility[coAccessibility$peaksetLookUpIndex1 %in% index_of_subset, ]
   }
-  link_matrix = matrix_data[coAccessibility$peaksetLookUpIndex1,]+matrix_data[coAccessibility$peaksetLookUpIndex2,]
+  link_matrix = matrix_data[coAccessibility$peaksetLookUpIndex1,] * matrix_data[coAccessibility$peaksetLookUpIndex2,]
   if (correlationCoefficient){
     link_matrix = link_matrix * coAccessibility$correlation
   }
