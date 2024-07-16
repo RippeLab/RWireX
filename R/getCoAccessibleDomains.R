@@ -36,12 +36,6 @@ getCoAccessibleDomains <- function(
                                                   levels = 3, min_size = 20, window_size = 200,
                                                   qual_filter = FALSE, z_clust = FALSE)
 
-    ### Extend domains from border midpoint
-    domains_small <- resize(domains_small, fix = 'start', width = width(domains_small) + 5000) 
-    domains_small <- resize(domains_small, fix = "end", width = width(domains_small) + 4999)
-    domains_large <- resize(domains_large, fix = 'start', width = width(domains_large) + 5000) 
-    domains_large <- resize(domains_large, fix = "end", width = width(domains_large) + 4999)
-  
     ### Merge hierachical levels and remove duplicates
     domains_small <- lapply(domains_small, function(x){x <- unlist(x);
                                                        x <- x[!duplicated(x)];
@@ -50,6 +44,12 @@ getCoAccessibleDomains <- function(
                                                        x <- x[!duplicated(x)];
                                                        return(x)}) %>% do.call("c", .)
 
+    ### Extend domains from border midpoint
+    domains_small <- resize(domains_small, fix = 'start', width = width(domains_small) + 5000) 
+    domains_small <- resize(domains_small, fix = "end", width = width(domains_small) + 4999)
+    domains_large <- resize(domains_large, fix = 'start', width = width(domains_large) + 5000) 
+    domains_large <- resize(domains_large, fix = "end", width = width(domains_large) + 4999)
+  
     ### Calculate domain co-accessibility scores
     domains_small$coaccessibility_score <- 0
     for (i in 1:length(domains_small)){
