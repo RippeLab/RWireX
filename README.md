@@ -1,36 +1,24 @@
 # RWireX
-RWireX is a R software package and contains various functions to analyze co-accessibility in scATAC-seq data acquired by plate- or droplet-based single cell sequencing. It is implemented as an extension to the ArchR software package building on its existing funcitonalities. 
+RWireX is a R software package that provides various functions to analyze co-accessibility in scATAC-seq data. It is implemented as an extension to the ArchR software package (Granja et al. 2021) building on its existing funcitonalities. It computes Pearson correlation coefficients across different cell populations and at varying levels of resolution to identify both autonomous links of co-accessibility (ACs) and domains of contiguous co-accessibility (DCs). <br />
+The “single-cell co-accessibility” workflow identifies ACs from stochastic accessibility changes in ATAC peaks with a homogeneous population of single cells as input. Pearson correlation coefficients between two peaks are assessed against a local background model. Background co-accessibility is determined from the 99th percentile of co-accessibility from accessibility matrices per chromosome shuffled over cells and peaks. The stability of ACs is assessed from their prevalence in the single cell population by computing the average percent accessible cells of the linked peaks.  <br />
+The “metacell co-accessibility” workflow identifies DCs from perturbed accessibility changes in 10 kb genomic tiles and aggregated metacell profiles of cells with similar chromatin accessibility profiles. It requires cell populations that are heterogeneous in respect to the perturbation. This allows to identify broader genomic patterns of depleted or enriched co-accessibility along the genomic coordinate.
 
-RWireX provides 
-- separated workflows to compute cis and trans co-accessibility, 
-- employs a local background model for co-accessibility link evaluation, 
-- computes single-cell link activity scores that enable correlation to gene expression output, 
-- and provides co-accessibility maps of large genomic regions to identify interacting loci without pre-selecting specific viewpoints.
+%% scheme from Fig. 3A
 
 ## Installation
 
 Install required packages: <br />
 BiocManager::install("plotgardener") # only needed for plotCoAccessibilityMap functionality <br />
 devtools::install_github("GreenleafLab/ArchR", ref="dev", repos = BiocManager::repositories()) <br />
+devtools::install_github("dozmorovlab/SpectralTAD") <br />
 <br />
-Create and save your personal token for installation at https://github.com/settings/tokens <br />
-personal_token = "" <br />
-devtools::install_github("https://github.com/RippeLab/RWireX", auth_token = personal_token) <br />
+Install RWireX: <br />
+devtools::install_github("RippeLab/RWireX") <br />
 
+## Vignettes
 
-## Functions
+see Wiki <br />
 
-All methods return the co-accessibility object and not ArchR Object, as it is in the ArchR package.
-### GetCoAccessibility
-An extended version of the addCoAccessibility by ArchR. Allows unique aggregation and accessibility analyis without aggregation - on the single cell level.
-Additionally provides scaled/normalizred matrix data and feature set used to calculate co-accessibility ad metadata. 
+## References
+Granja, J.M. et al. ArchR is a scalable software package for integrative single-cell chromatin accessibility analysis. Nat Genet 53, 403-411 (2021).
 
-### GetCoAccessibilityChromosomeWise
-Similar to GetCoAccessibility, but the co-accessibility is calculated for all peak-pairs in the chromosome and not for peak overlaps within maxDist, as done in the original method.
-
-### GetBackgroundCoAccessibility
-This function calculates background co-accessibility scores for peaks of a given ArchRProject. The background co-accessibility is determined by shuffling of features and cells.
-
-## In development: 
-1. Background Chromosomewise
-2. Peaks co-accessibility between chromosomes
