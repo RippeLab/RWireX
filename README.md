@@ -27,8 +27,7 @@ devtools::install_github("RippeLab/RWireX")
 ```
 
 ## Vignettes
-
-see Wiki <br />
+Check out our [wiki](https://github.com/RippeLab/RWireX/wiki).
 
 ## How to cite RWireX
 
