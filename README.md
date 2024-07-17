@@ -27,7 +27,7 @@ devtools::install_github("RippeLab/RWireX")
 ```
 
 ## Vignettes
-Check out our [wiki](https://github.com/RippeLab/RWireX/wiki).
+We provide test data and have vignettes for single-cell as well as metacell co-accessibility. Check out our [wiki](https://github.com/RippeLab/RWireX/wiki).
 
 ## How to cite RWireX
 
