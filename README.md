@@ -15,6 +15,7 @@ BiocManager::install("plotgardener")
 ```
 ```ruby
 devtools::install_github("GreenleafLab/ArchR", repos = BiocManager::repositories())
+ArchR::installExtraPackages()
 ```
 ```ruby
 devtools::install_github("dozmorovlab/SpectralTAD")
