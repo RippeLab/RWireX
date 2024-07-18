@@ -72,7 +72,7 @@ plotBrowserTrack <- function(
   threads = getArchRThreads(), 
   ylim = NULL,
   pal = NULL,
-  pal_loops = NULL,
+  pal_loops = colorRampPalette(c("#f0f0f0", "black"))(100),
   scaleLim_loops = NULL,
   baseSize = 7,
   scTileSize = 0.5,
