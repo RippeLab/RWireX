@@ -11,7 +11,7 @@ The “metacell co-accessibility” workflow identifies DCs from perturbed acces
 
 Install required packages: <br />
 ```ruby
-BiocManager::install("plotgardener") # only required for plotCoAccessibilityMap functionality
+BiocManager::install("plotgardener")
 ```
 ```ruby
 devtools::install_github("GreenleafLab/ArchR", repos = BiocManager::repositories())
