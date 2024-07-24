@@ -1,1 +1,54 @@
+---
+title: "Vignette for single cell co‐accessibility analysis with RWireX"
+author: "Isabelle Seufert"
+output: html_document
+---
 
+# Generate peak accessibility matrix
+First, we generate the peak accessibility matrix. For now, we subset our peak set to reduce run time and required resources.
+
+```{r}
+### Only take peaks on chromosome 8
+PeakSet <- PeakSet[seqnames(PeakSet) == "chr8"]
+
+### Add peaks to ArchR project
+proj <- addPeakSet(proj, peakSet = PeakSet)
+
+### Generate peak accessibility matrix without binarizing the counts
+proj <- addPeakMatrix(proj, binarize = FALSE)
+```
+
+# Compute single-cell co-accessibility
+Now, we compute the single-cell co-accessibility for each sample separately as our samples consist of homogeneous cells (sampe TNFa treatment timepoint, all G1 cell cycle phase). If you use your own data, you might want to consider selecting homogeneous cell clusters or cell types for separate analyses.
+
+```{r}
+scCoacc_list <- list()
+
+for (sample in samples){
+    cells <- rownames(proj@cellColData)[proj$Sample == sample];
+    scCoacc_list[[sample]] <- RWireX::getCoAccessibility(proj, 
+                                                         useMatrix = "PeakMatrix",
+                                                         cellsToUse = cells,
+                                                         maxDist = 1e+06, 
+                                                         AggregationMethod = "single_cell_resolution",
+                                                         log2Norm = FALSE,
+                                                         returnLoops = TRUE)
+}
+```
+
+# Compute background co-accessibility
+We want to assess, which of these co-accessible links are true-positive. Again, we compute the background co-accessibility for each sample separately.
+
+```{r}
+bgCoacc_list <- list()
+
+for (sample in samples){
+    cells <- rownames(proj@cellColData)[proj$Sample == sample];
+    bgCoacc_list[[sample]] <- RWireX::getBackgroundCoAccessibility(proj, 
+                                                                   useMatrix = "PeakMatrix",
+                                                                   cellsToUse = cells,
+                                                                   maxDist = 1e+06, 
+                                                                   AggregationMethod = "single_cell_resolution",
+                                                                   log2Norm = FALSE)
+}
+```
