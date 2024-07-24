@@ -52,3 +52,63 @@ for (sample in samples){
                                                                    log2Norm = FALSE)
 }
 ```
+
+We can have a look at the distribution of background co-accessibility per sample and select appropriate cutoffs. We recommend using the 99th percentile of background co-accessibility as lower cutoff to filter for true-positive co-accessible links.
+```{r}
+p <- ggplot()
+
+for (sample in samples){
+    df <- rbind(bgCoacc_list[[sample]]$BackgroundCoAccessibility$featShuffle,
+                bgCoacc_list[[sample]]$BackgroundCoAccessibility$cellShuffle)
+    df$sample <- sample
+    
+    p <- p + geom_histogram(data = as.data.frame(df),
+             aes(x = correlation, fill = sample), alpha = 0.5)
+}
+
+p
+```
+
+Have a look at these 99th percentile cutoffs from background co-accessibility for each sample.
+
+```{r}
+lapply(bgCoacc_list, function(x){round(x$BackgroundCutoff, 4)})
+```
+
+# Filter autonomous links of enriched co-accessibility (ACs)
+We select high-confidence co-accessible links using a lower cutoff for correlation coefficients from the background distribution, a lower cutoff for percent accessible cells (frequency of link occurence in single cells) and only selecting links with positively correlated peaks.
+
+```{r}
+AC_list <- list()
+
+for (sample in samples){
+    AC_list[[sample]] <- RWireX::filterCoAccessibility(coAccessibilityLoops = scCoacc_list[[sample]], 
+                                                       corCutOff = bgCoacc_list[[sample]]$BackgroundCutoff, 
+                                                       onlyPos = TRUE,
+                                                       perAccess = 5)
+}
+```
+
+Have a look at the number of ACs per sample.
+
+```{r}
+lapply(AC_list, function(x){length(x$CoAccessibility)})
+```
+
+# Visualize ACs by loops
+We visualize ACs by loops. The color of loops reflects the correlation coefficient of co-accessibility, while the height of loops reflects the frequency of the AC occurence in single cells. Here, we selected the exemplary region from our publication.
+
+```{r}
+AC_example <- as("chr8:102573784-102880000 ", "GRanges")
+
+p <- RWireX::plotBrowserTrack(proj, 
+                              region = AC_example,
+                              groupBy = "Sample", 
+                              normMethod = "nFrags", 
+                              loops = lapply(AC_list, function(x){x$CoAccessibility}),
+                              pal_loops = colorRampPalette(c("#f0f0f0", "black"))(100))
+grid.newpage(); grid.draw(p)
+```
+
+# Compute AC activities per cell
+Coming soon...
