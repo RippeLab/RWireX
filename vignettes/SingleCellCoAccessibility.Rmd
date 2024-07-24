@@ -3,6 +3,15 @@ title: "Vignette for single cell co‐accessibility analysis with RWireX"
 author: "Isabelle Seufert"
 output: html_document
 ---
+# Load libraries
+library(ArchR)
+library(plotgardener)
+library(SpectralTAD)
+
+library(RWireX)
+
+# Load exemplary data
+
 
 # Generate peak accessibility matrix
 First, we generate the peak accessibility matrix. For now, we subset our peak set to reduce run time and required resources.
