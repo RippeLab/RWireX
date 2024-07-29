@@ -27,8 +27,8 @@ proj <- addPeakSet(proj, peakSet = PeakSet)
 proj <- addPeakMatrix(proj, binarize = FALSE)
 ```
 
-# Compute single-cell co-accessibility
-Now, we compute the single-cell co-accessibility for each sample separately as our samples consist of homogeneous cells (sampe TNFa treatment timepoint, all G1 cell cycle phase). If you use your own data, you might want to consider selecting homogeneous cell clusters or cell types for separate analyses.
+# Compute single cell co-accessibility
+Next, we compute single cell co-accessibility for each sample separately, as the samples represent cell from one TNFa treatment time point selected for a homogeneous population of cells in G1 cell cycle state. If you use your own data, you might want to consider selecting homogeneous cell clusters or cell types for separate analyses.
 
 ```{r}
 scCoacc_list <- list()
@@ -46,7 +46,7 @@ for (sample in samples){
 ```
 
 # Compute background co-accessibility
-We want to assess, which of these co-accessible links are true-positive. Again, we compute the background co-accessibility for each sample separately.
+We want to assess which of these co-accessible links are true-positive. Again, we compute the background co-accessibility for each sample separately.
 
 ```{r}
 bgCoacc_list <- list()
@@ -78,14 +78,14 @@ for (sample in samples){
 p
 ```
 
-Have a look at these 99th percentile cutoffs from background co-accessibility for each sample.
+Have a look at the 99th percentile cutoffs from background co-accessibility for each sample.
 
 ```{r}
 lapply(bgCoacc_list, function(x){round(x$BackgroundCutoff, 4)})
 ```
 
 # Filter autonomous links of enriched co-accessibility (ACs)
-We select high-confidence co-accessible links using a lower cutoff for correlation coefficients from the background distribution, a lower cutoff for percent accessible cells (frequency of link occurence in single cells) and only selecting links with positively correlated peaks.
+We select high-confidence co-accessible links using a lower cutoff for correlation coefficients from the background distribution, a lower cutoff for percent accessible cells (frequency of link occurence in single cells) and only selecting links with positively correlated peak accessibility.
 
 ```{r}
 AC_list <- list()
@@ -105,7 +105,7 @@ lapply(AC_list, function(x){length(x$CoAccessibility)})
 ```
 
 # Visualize ACs by loops
-We visualize ACs by loops. The color of loops reflects the correlation coefficient of co-accessibility, while the height of loops reflects the frequency of the AC occurence in single cells. Here, we selected the exemplary region from our publication.
+We visualize ACs by loops. The color of loops reflects the correlation coefficient, while the height of loops reflects the frequency of the AC occurence in single cells. Here, we selected an exemplary region on chromosome 8 from our publication.
 
 ```{r}
 AC_example <- as("chr8:102573784-102880000 ", "GRanges")
@@ -121,3 +121,13 @@ grid.newpage(); grid.draw(p)
 
 # Compute AC activities per cell
 Coming soon...
+
+```{r}
+AC_activities <- getLinkActivityMatrix(proj,
+                                       AC_list$HUVEC_TNFa_0min_Rep1)
+```
+
+Visualize AC activities by heatmap.
+```{r}
+xx
+```

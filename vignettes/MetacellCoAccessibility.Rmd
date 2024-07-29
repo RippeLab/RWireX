@@ -1,1 +1,95 @@
+---
+title: "Vignette for metacell co‐accessibility analysis with RWireX"
+author: "Isabelle Seufert"
+output: html_document
+---
+# Load libraries
+library(ArchR)
+library(plotgardener)
+library(SpectralTAD)
 
+library(RWireX)
+
+# Load exemplary data
+
+
+# Generate tile accessibility matrix
+For now, we generate the tile accessibility matrix only for chromosome 6 to reduce run time and required resources. We selected 10 kb for tile sizes, but this can be adapted considering data quality and resolution requirements.
+
+```{r}
+### Exclude all chromosomes, except chromosome 6
+excludeChr <- getSeqnames(proj)
+excludeChr <- c(excludeChr, "chrM", "chrY")
+excludeChr <- excludeChr[excludeChr != "chr6"]
+
+### Generate tile accessibility matrix without binarizing the counts
+proj <- addTileMatrix(proj, tileSize = 10000, binarize = FALSE, 
+                      excludeChr = excludeChr, force = TRUE)
+```
+
+# Compute metacell co-accessibility
+XXX Next, we compute metacell co-accessibility across all samples to , as the samples represent cell from one TNFa treatment time point selected for a homogeneous population of cells in G1 cell cycle state. If you use your own data, you might want to consider selecting homogeneous cell clusters or cell types for separate analyses.
+
+```{r}
+### Define number of cells per replicate
+numCellsPerAggregate <- 10
+
+### Define number of aggregates
+totalCells <- nrow(proj@cellColData)
+numAggregates <- 0.9 * totalCells / numCellsPerAggregate
+
+### Run co-accessibility analysis
+mcCoacc <- RWireX::getCoAccessibility(proj, 
+                                      useMatrix = "TileMatrix", 
+                                      binaryMatrix = FALSE,
+                                      maxDist = 2e+06, 
+                                      AggregationMethod = "unique",
+                                      numCellsPerAggregate = numCellsPerAggregate,
+                                      numAggregates = numAggregates, 
+                                      log2Norm = FALSE, 
+                                      returnLoops = TRUE)
+}
+```
+
+# Call contiguous domains of enriched co-accessibility (DCs)
+XXX
+
+```{r}
+DCs <- RWireX::getCoAccessibleDomains(mcCoacc)
+}
+```
+
+Have a look at the number of DCs.
+
+```{r}
+length(DCs)
+```
+
+We can have a look at the distribution of background co-accessibility per sample and select appropriate cutoffs. We recommend using the 99th percentile of background co-accessibility as lower cutoff to filter for true-positive co-accessible links.
+```{r}
+p <- ggplot()
+
+for (sample in samples){
+    df <- rbind(bgCoacc_list[[sample]]$BackgroundCoAccessibility$featShuffle,
+                bgCoacc_list[[sample]]$BackgroundCoAccessibility$cellShuffle)
+    df$sample <- sample
+    
+    p <- p + geom_histogram(data = as.data.frame(df),
+             aes(x = correlation, fill = sample), alpha = 0.5)
+}
+
+p
+```
+
+# Visualize DCs by co-accessibility map
+We visualize DCs by heatmap. The heatmap color reflects the correlation coefficient. DCs called from metacell co-accessibility are annotated. Here, we selected an exemplary region on chromosome 6 from our publication.
+
+```{r}
+DC_example <- as("chr6:136573673-137633313", "GRanges")
+
+plotCoAccessibilityMap(CoAccessibility = mcCoacc,
+                       region = DC_example,
+                       annotation = DCs,
+                       onlyPos = FALSE, rescale = FALSE)
+}
+```

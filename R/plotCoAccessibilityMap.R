@@ -101,8 +101,10 @@ plotCoAccessibilityMap <- function(
     }
     
     ## Get annotation
-    for (i in 1:length(annotation)){
-        seqlevels(annotation[[i]], pruning.mode="tidy") <- seqlevels(region)
+    if (!is.null(annotation)){
+        for (i in 1:length(annotation)){
+            seqlevels(annotation[[i]], pruning.mode="tidy") <- seqlevels(region)
+        }
     }
     
     ## Create a plotgardener page
