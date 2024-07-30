@@ -13,7 +13,7 @@
 #' @param orderedSamples You can specify the order of the group in the plot here in a string vector.
 #' @param useGroups Filter the groups.
 #' @param pseudolog If you would like the values to be plotted in the pseudolog.
-#' @param pal
+#' @param pal Color pallete
 #' @export
 plotFeatureViolin <- function(ArchRProj,
                               feature, # Gene name or peak id (chr:idx)

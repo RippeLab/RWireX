@@ -63,11 +63,8 @@ filterCoAccessibility <- function(
   }
   if (!is.null(resolution)){
     peakSummits <- resize(featureSet, 1, "center")
-    if(!is.null(resolution)){
-      summitTiles <- floor(start(peakSummits) / resolution) * resolution + floor(resolution / 2)
-    }else{
-      summitTiles <- start(peakSummits)
-    }
+
+    summitTiles <- floor(start(peakSummits) / resolution) * resolution + floor(resolution / 2)
     loops <- ArchR:::.constructGR(
       seqnames = seqnames(peakSummits[coAccessibilityLoops@elementMetadata[,1]]),
       start = summitTiles[coAccessibilityLoops@elementMetadata[,1]],
@@ -86,6 +83,7 @@ filterCoAccessibility <- function(
   }
   if (loops_format){
     loops <- SimpleList(CoAccessibility = coAccessibilityLoops)
+    metadata(loops) = metadata(coAccessibilityLoops)
     return(loops)
   }
   else{
