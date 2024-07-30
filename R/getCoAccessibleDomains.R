@@ -40,22 +40,24 @@ getCoAccessibleDomains <- function(
     ArchR:::.logDiffTime(main = "Calling domains with SpectralTAD", t1 = tstart, verbose = verbose, logFile = logFile)
     features <- CoAccessibility@metadata$featureSet
     resolution <- features@ranges@width %>% unique(.)
-    domains_small <- try(SpectralTAD::SpectralTAD_Par(cont_list = hic_list, grange = TRUE,
-                                                  chr = chrs, resolution = resolution,
-                                                  levels = 3, min_size = 2, window_size = 20,
-                                                  qual_filter = FALSE, z_clust = FALSE), silent = TRUE)
-    domains_large <- try(SpectralTAD::SpectralTAD_Par(cont_list = hic_list, grange = TRUE,
-                                                  chr = chrs, resolution = resolution,
-                                                  levels = 3, min_size = 20, window_size = 200,
-                                                  qual_filter = FALSE, z_clust = FALSE), silent = TRUE)
+    domains_small <- suppressMessages(SpectralTAD::SpectralTAD_Par(cont_list = hic_list, grange = TRUE,
+                                                                   chr = chrs, resolution = resolution,
+                                                                   levels = 3, min_size = 2, window_size = 20,
+                                                                   qual_filter = FALSE, z_clust = FALSE))
+    domains_large <- suppressMessages(SpectralTAD::SpectralTAD_Par(cont_list = hic_list, grange = TRUE,
+                                                                   chr = chrs, resolution = resolution,
+                                                                   levels = 3, min_size = 20, window_size = 200,
+                                                                   qual_filter = FALSE, z_clust = FALSE))
 
     ### Merge hierachical levels and remove duplicates
-    domains_small <- lapply(domains_small, function(x){x <- unlist(x);
-                                                       x <- x[!duplicated(x)];
-                                                       return(x)}) %>% do.call("c", .)
-    domains_large <- lapply(domains_large, function(x){x <- unlist(x);
-                                                       x <- x[!duplicated(x)];
-                                                       return(x)}) %>% do.call("c", .)
+    domains_small <- lapply(domains_small, function(x){y <- as(x[[1]], "GRanges");
+                                                       for ( i in 2:length(x) ) { y <- c(y, as(x[[i]], "GRanges")) };
+                                                       y <- y[!duplicated(y)];
+                                                       return(y)}) %>% do.call("c", .)
+    domains_large <- lapply(domains_large, function(x){y <- as(x[[1]], "GRanges");
+                                                       for ( i in 2:length(x) ) { y <- c(y, as(x[[i]], "GRanges")) };
+                                                       y <- y[!duplicated(y)];
+                                                       return(y)}) %>% do.call("c", .)
 
     ### Extend domains from border midpoint
     domains_small <- resize(domains_small, fix = 'start', width = width(domains_small) + 5000) 
