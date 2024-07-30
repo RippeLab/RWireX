@@ -5,27 +5,24 @@
 \title{plotCoAccessibilityMap}
 \usage{
 plotCoAccessibilityMap(
-  ArchRProj,
   CoAccessibility,
   region,
   genome = ArchR::getArchRGenome(),
-  useMatrix = "PeakMatrix",
+  features = NULL,
   main = NULL,
   onlyPos = FALSE,
   scaleLim = NULL,
-  rescale = FALSE
+  rescale = FALSE,
+  annotation = NULL,
+  annotation_size = 0.5
 )
 }
 \arguments{
-\item{ArchRProj}{An \code{ArchRProject} object.}
-
 \item{CoAccessibility}{A GRanges object with co-accessible links from getCoAccessibility function.}
 
 \item{region}{GRanges object of length 1 with region of interest for which co-accessibility should be visualized.}
 
 \item{genome}{Genome and gene annotation to use.}
-
-\item{useMatrix}{The name of the data matrix used for calculation of CoAccessibility. Options include "PeakMatrix" or non-binarized "TileMatrix" (binarize = FALSE in addTileMatrix).}
 
 \item{main}{Title of co-accessibility map.}
 
@@ -34,6 +31,8 @@ plotCoAccessibilityMap(
 \item{scaleLim}{Set limits of co-accessibility scale.}
 
 \item{rescale}{If TRUE, genomic coordinate is rescaled to visualize peaks continously.}
+
+\item{useMatrix}{The name of the data matrix used for calculation of CoAccessibility. Options include "PeakMatrix" or non-binarized "TileMatrix" (binarize = FALSE in addTileMatrix).}
 }
 \value{
 Co-accessibility map
