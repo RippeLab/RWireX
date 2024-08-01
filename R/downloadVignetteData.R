@@ -8,38 +8,30 @@ downloadVignetteData <- function(directory_to_store){
   oldTimeout <- getOption('timeout')
   options(timeout=150000)
   
-  project_dir = paste0(directory_to_store, "/Project")
-  dir.create(project_dir, showWarnings = FALSE)
-  
-  url_peaks = "https://hub.dkfz.de/s/wGRBSbgATPFmmPA/download?path=%2F&files=PeakSet.rds"
+  ### Get peak set
+  url_peaks = "https://hub.dkfz.de/s/peey26JC9X7drAb/download?path=%2F&files=PeakSet.rds"
   
   download.file(
     url = url_peaks, 
-    destfile = file.path(directory_to_store, "PeakSet.Rds")
+    destfile = file.path(directory_to_store, "PeakSet.rds")
   ) 
   
-  arrow_url = "https://hub.dkfz.de/s/wGRBSbgATPFmmPA/download?path=%2FExemplary_ArchR_Project&files=ArrowFiles"
-  download.file(
-    url = arrow_url, 
-    destfile = file.path(project_dir, "ArrowFiles")
-  ) 
+  ### Get ArchR project
+  url_proj = "https://hub.dkfz.de/s/peey26JC9X7drAb/download?path=%2F&files=ArchRProj_RWireX_Vignette.zip"
   
-  embedding_url = "https://hub.dkfz.de/s/wGRBSbgATPFmmPA/download?path=%2FExemplary_ArchR_Project&files=Embeddings"
   download.file(
-    url = save_project_url, 
-    destfile = file.path(project_dir, "Embeddings")
-  ) 
-  
-  iterative_url = "https://hub.dkfz.de/s/wGRBSbgATPFmmPA/download?path=%2FExemplary_ArchR_Project&files=IterativeLSI"
-  download.file(
-    url = save_project_url, 
-    destfile = file.path(project_dir, "IterativeLSI")
-  ) 
-  
-  save_project_url = "https://hub.dkfz.de/s/wGRBSbgATPFmmPA/download?path=%2FExemplary_ArchR_Project&files=Save-ArchR-Project.rds"
-  download.file(
-    url = save_project_url, 
-    destfile = file.path(project_dir, "Save-ArchR-Project.rds")
-  ) 
+    url = url_proj, 
+    destfile = file.path(directory_to_store, "ArchRProj_RWireX_Vignette.zip")
+  )
 
+  unzip(
+    file.path(directory_to_store, "ArchRProj_RWireX_Vignette.zip"), 
+    exdir = directory_to_store
+  )
+
+  ### Return local paths to ArchR project and peak set
+  paths <- list(proj = file.path(directory_to_store, "ArchRProj_RWireX_Vignette"),
+    peaks = file.path(directory_to_store, "PeakSet.rds"))
+
+  return(paths)
 }
