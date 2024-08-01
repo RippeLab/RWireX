@@ -39,3 +39,4 @@ Collate:
     'plotBrowserTrack.R'
     'plotCoAccessibilityMap.R'
     'plotFeatureViolin.R'
+    'downloadVignetteData.R'
