@@ -21,7 +21,7 @@ downloadVignetteData <- function(directory_to_store,
   
   ArchR:::.logDiffTime(main = "Downloading PeakSet", t1 = tstart, verbose = verbose, logFile = logFile)
   ### Get peak set
-  url_peaks = "https://hub.dkfz.de/s/peey26JC9X7drAb/download?path=%2F&files=PeakSet.rds"
+  url_peaks = "https://zenodo.org/records/13142236/files/PeakSet.rds"
   
   download.file(
     url = url_peaks, 
@@ -30,7 +30,7 @@ downloadVignetteData <- function(directory_to_store,
   
   ArchR:::.logDiffTime(main = "Downloading project", t1 = tstart, verbose = verbose, logFile = logFile)
   ### Get ArchR project
-  url_proj = "https://hub.dkfz.de/s/peey26JC9X7drAb/download?path=%2F&files=ArchRProj_RWireX_Vignette.zip"
+  url_proj = "https://zenodo.org/records/13142236/files/ArchRProj_RWireX_Vignette.zip"
   
   download.file(
     url = url_proj, 
