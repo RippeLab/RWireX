@@ -1,7 +1,7 @@
 # RWireX
 RWireX is a R software package that provides various functions to analyze co-accessibility in scATAC-seq data. It is implemented as an extension to the ArchR software package (Granja et al. 2021) building on its existing funcitonalities. It computes Pearson correlation coefficients across different cell populations and at varying levels of resolution to identify both autonomous links of co-accessibility (ACs) and domains of contiguous co-accessibility (DCs). <br />
 
-![RWireX_scheme](/figures/RWireX_scheme.png)
+![RWireX_scheme](/figures/FigSX_RWireX_scheme_v3.jpg)
 
 The “single-cell co-accessibility” workflow identifies ACs from stochastic accessibility changes in ATAC peaks with a homogeneous population of single cells as input. Pearson correlation coefficients between two peaks are assessed against a local background model. Background co-accessibility is determined from the 99th percentile of co-accessibility from accessibility matrices per chromosome shuffled over cells and peaks. The stability of ACs is assessed from their prevalence in the single cell population by computing the average percent accessible cells of the linked peaks.  <br />
 <br />
