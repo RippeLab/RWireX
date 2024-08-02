@@ -3,8 +3,8 @@ title: "Vignette for single cell co‐accessibility analysis with RWireX"
 author: "Isabelle Seufert"
 output: html_document
 ---
-# Load libraries
 
+### Load libraries
 ```{r}
 library(ArchR)
 library(plotgardener)
@@ -13,21 +13,25 @@ library(SpectralTAD)
 library(RWireX)
 ```
 
-# Set ArchR parameters
-
+### Set ArchR parameters
 ```{r}
 addArchRThreads(threads = 10)
 addArchRGenome("hg38")
 ```
 
-# Load exemplary data
-
+### Download exemplary data
 ```{r}
-### Load ArchR project and peak set
-proj <- 
-PeakSet <- 
+data_paths <- downloadVignetteData()
+```
+
+### Import test data
+```{r}
+proj <- loadArchRProject(data_paths$proj)
+PeakSet <- readRDS(data_paths$peaks)
+```
 
 ### Get samples
+```{r}
 samples <- unique(proj$Sample)
 ```
 
@@ -87,30 +91,30 @@ for (sample in samples){
 ```
 
 # Filter autonomous links of enriched co-accessibility (ACs)
-We select high-confidence co-accessible links using a lower cutoff for correlation coefficients from the background distribution, a lower cutoff for percent accessible cells (frequency of link occurence in single cells) and only selecting links with positively correlated peak accessibility.
-
 We can have a look at the distribution of background co-accessibility per sample and select appropriate cutoffs. We recommend using the 99th percentile of background co-accessibility as lower cutoff to filter for true-positive co-accessible links.
+
 ```{r}
-p <- ggplot()
+p <- ggplot() + theme_minimal()
 
 for (sample in samples){
     df <- rbind(bgCoacc_list[[sample]]$BackgroundCoAccessibility$featShuffle,
                 bgCoacc_list[[sample]]$BackgroundCoAccessibility$cellShuffle)
     df$sample <- sample
     
-    p <- p + geom_histogram(data = as.data.frame(df),
-             aes(x = correlation, fill = sample), alpha = 0.5)
+    p <- p + geom_density(data = as.data.frame(df),
+             aes(x = correlation, color = sample)) +
+             geom_vline(xintercept = bgCoacc_list[[sample]]$BackgroundCutoff)
 }
 
 p
 ```
 
 Have a look at the 99th percentile cutoffs from background co-accessibility for each sample.
-
 ```{r}
 lapply(bgCoacc_list, function(x){round(x$BackgroundCutoff, 4)})
 ```
 
+Now, we can filter for high-confidence co-accessible links. We select high-confidence co-accessible links using a lower cutoff for correlation coefficients from the background distribution, a lower cutoff for percent accessible cells (frequency of link occurence in single cells) and only selecting links with positively correlated peak accessibility.
 ```{r}
 AC_list <- list()
 
@@ -123,13 +127,12 @@ for (sample in samples){
 ```
 
 Have a look at the number of ACs per sample.
-
 ```{r}
 lapply(AC_list, function(x){length(x$CoAccessibility)})
 ```
 
 # Visualize ACs by loops
-We visualize ACs by loops. The color of loops reflects the correlation coefficient, while the height of loops reflects the frequency of the AC occurence in single cells. Here, we selected an exemplary region on chromosome 8 from our publication.
+We visualize ACs by loops. The color of loops reflects the correlation coefficient, while the height of loops reflects the frequency of the AC occurence in single cells. Here, we selected an exemplary region on chromosome 8 from our preprint.
 
 ```{r}
 AC_example <- as("chr8:102573784-102880000 ", "GRanges")
@@ -138,20 +141,33 @@ p <- RWireX::plotBrowserTrack(proj,
                               region = AC_example,
                               groupBy = "Sample", 
                               normMethod = "nFrags", 
-                              loops = lapply(AC_list, function(x){x$CoAccessibility}),
-                              pal_loops = colorRampPalette(c("#f0f0f0", "black"))(100))
+                              loops = lapply(AC_list, function(x){x$CoAccessibility}))
 grid.newpage(); grid.draw(p)
 ```
 
 # Compute AC activities per cell
-Coming soon...
 
 ```{r}
 AC_activities <- getLinkActivityMatrix(proj,
-                                       AC_list$HUVEC_TNFa_0min_Rep1)
+                                       AC_list$HUVEC_TNFa_30min_Rep1, 
+                                       regionSubset = AC_example)
 ```
 
-Visualize AC activities by heatmap.
+We can visualize AC activities by heatmap and find that some co-accessible links are active in almost all cells, while others appear to be less frequent. We find that some of these rare co-accessible links are commonly active together.
 ```{r}
-xx
+### Get dataframe of AC activities
+df <- reshape2::melt(as.matrix(AC_activities))
+
+### Cluster cells by AC activity
+cluster_cells <- hclust( dist(t(AC_activities), method = "euclidean"), method = "ward.D2" )$order
+
+### Reorder cells in activitydataframe
+df$Var2 <- factor(df$Var2, levels = colnames(AC_activities)[cluster_cells])
+```
+
+```{r}
+### Plot heatmap of AC activities
+p <- ggplot(df, aes(x = Var2, y = Var1, fill = value)) + 
+          geom_tile() + xlab("Cells")
+p
 ```

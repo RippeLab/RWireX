@@ -4,8 +4,7 @@ author: "Isabelle Seufert"
 output: html_document
 ---
 
-# Load libraries
-
+### Load libraries
 ```{r}
 library(ArchR)
 library(plotgardener)
@@ -14,20 +13,25 @@ library(SpectralTAD)
 library(RWireX)
 ```
 
-# Set ArchR parameters
-
+### Set ArchR parameters
 ```{r}
 addArchRThreads(threads = 10)
 addArchRGenome("hg38")
 ```
 
-# Load exemplary data
-
+### Download exemplary data
 ```{r}
-### Load ArchR project and peak set
-proj <- 
+data_paths <- downloadVignetteData()
+```
+
+### Import test data
+```{r}
+proj <- loadArchRProject(data_paths$proj)
+PeakSet <- readRDS(data_paths$peaks)
+```
 
 ### Get samples
+```{r}
 samples <- unique(proj$Sample)
 ```
 
@@ -46,7 +50,7 @@ proj <- addTileMatrix(proj, tileSize = 10000, binarize = FALSE,
 ```
 
 # Compute metacell co-accessibility
-XXX Next, we compute metacell co-accessibility across all samples to , as the samples represent cell from one TNFa treatment time point selected for a homogeneous population of cells in G1 cell cycle state. If you use your own data, you might want to consider selecting homogeneous cell clusters or cell types for separate analyses.
+Next, we compute metacell co-accessibility across all samples. If you use your own data, you might want to consider selecting multiple cell clusters or cell types for combined analysis.
 
 ```{r}
 ### Define number of cells per metacell
@@ -66,15 +70,13 @@ mcCoacc <- RWireX::getCoAccessibility(proj,
                                       numAggregates = numMetacells, 
                                       log2Norm = FALSE, 
                                       returnLoops = TRUE)
-}
 ```
 
 # Call contiguous domains of enriched co-accessibility (DCs)
-XXX This will take a few minutes.
+From the metacell co-accessibility, we can identify domains of contiguously enriched co-accessibility. This will take a few minutes to run.
 
 ```{r}
 DCs <- RWireX::getCoAccessibleDomains(mcCoacc)
-DCs
 ```
 
 Have a look at the called DCs.
@@ -84,7 +86,7 @@ DCs
 ```
 
 # Visualize DCs by co-accessibility map
-We visualize DCs by heatmap. The heatmap color reflects the correlation coefficient of metacell co-accessibility. DCs called from metacell co-accessibility are annotated. Here, we selected an exemplary region on chromosome 6 from our publication.
+We can visualize DCs by heatmap. The heatmap color reflects the correlation coefficient from metacell co-accessibility. DCs called from metacell co-accessibility are annotated. Here, we selected an exemplary region on chromosome 6 from our preprint.
 
 ```{r}
 DC_example <- as("chr6:137100000-138100000", "GRanges")
