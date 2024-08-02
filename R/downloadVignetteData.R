@@ -5,7 +5,7 @@
 #' @param verbose A boolean value that determines whether standard output should be printed.
 #' @param logFile The path to a file to be used for logging RWireX output.
 #' @export
-downloadVignetteData <- function(directory_to_store,
+downloadVignetteData <- function(directory_to_store = getwd(),
                                  logFile = createLogFile("downloadVignetteData"), 
                                  verbose = TRUE){
   
