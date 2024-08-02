@@ -4,6 +4,8 @@
 #'
 #' @param CoAccessibility A GRanges object with co-accessible links from getCoAccessibility function.
 #' @param enrich_cutoff Quantile cutoff to determine co-accessibility enrichment.
+#' @param verbose A boolean value that determines whether standard output should be printed.
+#' @param logFile The path to a file to be used for logging RWireX output.
 #' @return GRanges object
 #' @keywords co-accessibility domain archr rwirex
 #' @examples Coming soon.

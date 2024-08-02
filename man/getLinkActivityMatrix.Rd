@@ -6,28 +6,34 @@
 \usage{
 getLinkActivityMatrix(
   ArchRProj,
-  coAccessibility,
+  CoAccessibility,
   useMatrix = "PeakMatrix",
   peakSubset = NULL,
-  rangeForSubset = NULL,
+  regionSubset = NULL,
   binarize = TRUE,
-  correlationCoefficient = FALSE
+  correlationCoefficient = FALSE,
+  logFile = createLogFile("getLinkActivityMatrix"),
+  verbose = TRUE
 )
 }
 \arguments{
 \item{ArchRProj}{An \code{ArchRProject} object.}
 
-\item{coAccessibility}{The co-accessibility data produced by RWireX method getCoAccessibility.}
+\item{CoAccessibility}{The co-accessibility data produced by RWireX method getCoAccessibility.}
 
 \item{useMatrix}{Same matrix type that was used for the accessibility.}
 
 \item{peakSubset}{If specified, then the matrix is subsetted by the links with the first peak in the peakSubset.}
 
-\item{rangeForSubset}{If specified, then the matrix is subsetted by the links where the first peak is in this range.}
+\item{regionSubset}{If specified, then the matrix is subsetted by the links where the first peak is in this range.}
 
-\item{binarize}{if matrix needs to be binarized. Have to be the same as the matrix used for coAccessibility calculation.}
+\item{binarize}{if matrix needs to be binarized. Have to be the same as the matrix used for CoAccessibility calculation.}
 
 \item{correlationCoefficient}{multiply links by correlation.}
+
+\item{logFile}{The path to a file to be used for logging RWireX output.}
+
+\item{verbose}{A boolean value that determines whether standard output should be printed.}
 }
 \description{
 Get Link Activity Matix

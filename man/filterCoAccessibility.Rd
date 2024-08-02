@@ -5,7 +5,7 @@
 \title{Filter the co-accessibility from an ArchRProject}
 \usage{
 filterCoAccessibility(
-  coAccessibilityLoops = NULL,
+  coAccessibilityLoops,
   corCutOff = NULL,
   onlyPos = TRUE,
   perAccess = NULL,
@@ -22,7 +22,7 @@ If set to false, then all correlation bigger or equal to abs(corCutOff) are retu
 
 \item{resolution}{A numeric describing the bp resolution to use when returning loops. This helps with overplotting of correlated regions.}
 
-\item{coAccessibility}{A coAccessibility DataFrame created by one of the coAccessibility functions.}
+\item{coAccessibility}{A coAccessibility DataFrame or Loops created by one of the coAccessibility functions.}
 }
 \description{
 This function filters the co-accessibility by the specified parameters, like correlation cutoff or percent of accessible cells.

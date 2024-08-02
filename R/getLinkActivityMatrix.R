@@ -7,6 +7,8 @@
 #' @param regionSubset If specified, then the matrix is subsetted by the links where the first peak is in this range.
 #' @param correlationCoefficient multiply links by correlation.
 #' @param binarize if matrix needs to be binarized. Have to be the same as the matrix used for CoAccessibility calculation.
+#' @param verbose A boolean value that determines whether standard output should be printed.
+#' @param logFile The path to a file to be used for logging RWireX output.
 #' 
 #' @export
 
