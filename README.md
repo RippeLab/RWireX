@@ -1,5 +1,5 @@
 # RWireX: Co-accessibility analysis for scATAC-seq data
-RWireX is a R software package that provides various functions to analyze co-accessibility in scATAC-seq data. It is implemented as an extension to the ArchR software package (Granja et al. 2021) building on its existing funcitonalities. RWireX offers two distinct workflows to uncover different aspects of chromatin organization: <br />
+RWireX is a R software package that provides various functions to analyze co-accessibility in scATAC-seq data. It is implemented as an extension to the ArchR software package (Granja et al. 2021) building on its existing funcitonalities and is based on our previous work (Mallm et al. 2019). RWireX offers two distinct workflows to uncover different aspects of chromatin organization: <br />
  - Single cell co-accessibility workflow: <br />
    Identifies autonomous links of co-accessibility (ACs) by analyzing stochastic accessibility changes in individual cells.
  - Metacell co-accessibility workflow: <br />
@@ -59,9 +59,11 @@ We provide vignettes as well as extended explanations on how to run single cell 
 <br /><br />
 
 ## How to cite RWireX
-Seufert, I. et al.
+Seufert I, Gerosa I, Varamogianni-Mamatsi V, Vladimirova A, Sen E, Mantz S, Rademacher A, Schumacher S, Liakopoulos P, Kolovos P, Anders S, Mallm JP, Papantonis A, Rippe K (2024) TNFα induced gene co-regulation occurs in two mechanistically different types of chromatin modules. bioRxiv, 2024.2008.2003.606159, doi: https://doi.org/10.1101/2024.08.03.606159
 <br /><br />
 
 ## References
+Mallm JP, Iskar M, Ishaque N, Klett LC, Kugler SJ, Muino JM, Teif VB, Poos AM, Großmann S, Erdel F, Tavernari D, Koser SD, Schumacher S, Brors B, König R, Remondini D, Vingron M, Stilgenbauer S, Lichter P, Zapatka M, Mertens D, Rippe K (2019) Linking aberrant chromatin features in chronic lymphocytic leukemia to deregulated transcription factor networks. Mol Syst Biol 15, e8339. doi: https://doi.org/10.15252/msb.20188339
+
 Granja, J.M. et al. ArchR is a scalable software package for integrative single-cell chromatin accessibility analysis. Nat Genet 53, 403-411 (2021).
 
