@@ -44,6 +44,21 @@ Install RWireX: <br />
 devtools::install_github("RippeLab/RWireX")
 ```
 <br />
+You will need additional genome annotations for visualization. <br />
+For human hg38 genome:
+
+```r
+BiocManager::install("TxDb.Hsapiens.UCSC.hg38.knownGene")
+BiocManager::install("org.Hs.eg.db")
+```
+<br />
+For mouse mm10 genome:
+
+```r
+BiocManager::install("TxDb.Mmusculus.UCSC.mm10.knownGene")
+BiocManager::install("org.Mm.eg.db")
+```
+<br />
 
 ## Download test data
 We provide test data from untreated and 30 min/240 min TNFa-treated HUVECs to run the vignette. The test data is approximately 0.6 GB in size.
