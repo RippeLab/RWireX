@@ -74,7 +74,7 @@ We provide vignettes as well as extended explanations on how to run single cell 
 <br /><br />
 
 ## How to cite RWireX
-Seufert I, Gerosa I, Varamogianni-Mamatsi V, Vladimirova A, Sen E, Mantz S, Rademacher A, Schumacher S, Liakopoulos P, Kolovos P, Anders S, Mallm JP, Papantonis A, Rippe K (2024) TNFα induced gene co-regulation occurs in two mechanistically different types of chromatin modules. bioRxiv, 2024.2008.2003.606159, doi: https://doi.org/10.1101/2024.08.03.606159
+Seufert I, Gerosa I, Varamogianni-Mamatsi V, Vladimirova A, Sen E, Mantz S, Rademacher A, Schumacher S, Liakopoulos P, Kolovos P, Anders S, Mallm JP, Papantonis A, Rippe K (2024) Two distinct chromatin modules regulate proinflammatory gene expression. bioRxiv, 2024.2008.2003.606159, doi: https://doi.org/10.1101/2024.08.03.606159
 <br /><br />
 
 ## References
