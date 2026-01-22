@@ -74,7 +74,7 @@ We provide vignettes as well as extended explanations on how to run single cell 
 <br /><br />
 
 ## How to cite RWireX
-Seufert I, Gerosa I, Varamogianni-Mamatsi V, Vladimirova A, Sen E, Mantz S, Rademacher A, Schumacher S, Liakopoulos P, Kolovos P, Anders S, Mallm JP, Papantonis A, Rippe K (2024) Two distinct chromatin modules regulate proinflammatory gene expression. bioRxiv, 2024.2008.2003.606159, doi: https://doi.org/10.1101/2024.08.03.606159
+Seufert, I., Gerosa, I., Varamogianni-Mamatsi, V. et al. Two distinct chromatin modules regulate proinflammatory gene expression. Nat Cell Biol 28, 182–196 (2026). https://doi.org/10.1038/s41556-025-01819-2
 <br /><br />
 
 ## References
